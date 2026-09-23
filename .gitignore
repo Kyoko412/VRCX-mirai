@@ -1,6 +1,7 @@
 node_modules/
 build/
 obj/
+**/bin/
 obj1/
 .idea/
 *.log

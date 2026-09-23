@@ -60,8 +60,12 @@
 
   <ItemGroup>
     <Compile Remove="DBMerger\**" />
+    <Compile Remove="MobileCompanion\**" />
     <EmbeddedResource Remove="DBMerger\**" />
     <None Remove="DBMerger\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="MobileCompanion\VRCX.MobileCompanion.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Blake2Sharp">

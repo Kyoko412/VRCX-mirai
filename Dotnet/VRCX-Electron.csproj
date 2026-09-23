@@ -94,6 +94,7 @@
     <Compile Remove="OverlayWebSocket\**" />
     <Content Remove="DBMerger\**" />
     <Compile Remove="DBMerger\**" />
+    <Compile Remove="MobileCompanion\**" />
   </ItemGroup>
 
   <ItemGroup>
