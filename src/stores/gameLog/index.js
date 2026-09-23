@@ -420,7 +420,7 @@ export const useGameLogStore = defineStore('GameLog', () => {
             ...input,
             groupName
         };
-        database.addGamelogLocationToDatabase(entry);
+        await database.addGamelogLocationToDatabase(entry, input.ownerUserId);
     }
 
     /**

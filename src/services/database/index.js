@@ -173,6 +173,12 @@ const database = {
             `CREATE TABLE IF NOT EXISTS gamelog_location (id INTEGER PRIMARY KEY, created_at TEXT, location TEXT, world_id TEXT, world_name TEXT, time INTEGER, group_name TEXT, UNIQUE(created_at, location))`
         );
         await sqliteService.executeNonQuery(
+            `CREATE TABLE IF NOT EXISTS mobile_game_location_owner_v1 (gamelog_location_id INTEGER PRIMARY KEY, owner_user_id TEXT NOT NULL)`
+        );
+        await sqliteService.executeNonQuery(
+            `CREATE INDEX IF NOT EXISTS mobile_game_location_owner_user_idx ON mobile_game_location_owner_v1 (owner_user_id, gamelog_location_id)`
+        );
+        await sqliteService.executeNonQuery(
             `CREATE INDEX IF NOT EXISTS gamelog_location_created_at_idx ON gamelog_location (created_at)`
         );
         await sqliteService.executeNonQuery(

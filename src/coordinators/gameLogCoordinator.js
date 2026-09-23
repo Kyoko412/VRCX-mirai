@@ -18,6 +18,7 @@ import { runLastLocationResetFlow, runUpdateCurrentUserLocationFlow } from './lo
 import { getGroupName } from '../shared/utils';
 import { userRequest } from '../api';
 import { watchState } from '../services/watchState';
+import { ownerForLiveGameLocation } from '../services/mobileGameOwnership';
 import { toast } from 'vue-sonner';
 
 import { useAdvancedSettingsStore } from '../stores/settings/advanced';
@@ -243,6 +244,11 @@ export function addGameLogEntry(gameLog, location, { trackEncounter = true } = {
             instanceStore.addInstanceJoinHistory(gameLog.location, gameLog.dt);
             const L = parseLocation(gameLog.location);
             entry = createLocationEntry(gameLog.dt, gameLog.location, L.worldId, worldName);
+            entry.ownerUserId = ownerForLiveGameLocation({
+                trackEncounter,
+                isLoggedIn: watchState.isLoggedIn,
+                accountId: userStore.currentUser.id
+            });
             getGroupName(gameLog.location).then((groupName) => {
                 entry.groupName = groupName;
             });

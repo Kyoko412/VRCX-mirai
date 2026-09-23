@@ -109,8 +109,8 @@ const gameLog = {
         return gamelogDatabase;
     },
 
-    addGamelogLocationToDatabase(entry) {
-        sqliteService.executeNonQuery(
+    async addGamelogLocationToDatabase(entry, ownerUserId = null) {
+        const inserted = await sqliteService.executeNonQuery(
             `INSERT OR IGNORE INTO gamelog_location (created_at, location, world_id, world_name, time, group_name) VALUES (@created_at, @location, @world_id, @world_name, @time, @group_name)`,
             {
                 '@created_at': entry.created_at,
@@ -121,6 +121,13 @@ const gameLog = {
                 '@group_name': entry.groupName
             }
         );
+        if (inserted === 1 && typeof ownerUserId === 'string' && /^usr_[A-Za-z0-9_-]{1,64}$/.test(ownerUserId)) {
+            await sqliteService.executeNonQuery(
+                `INSERT OR IGNORE INTO mobile_game_location_owner_v1 (gamelog_location_id, owner_user_id)
+                 SELECT id, @ownerUserId FROM gamelog_location WHERE created_at = @created_at AND location = @location`,
+                { '@ownerUserId': ownerUserId, '@created_at': entry.created_at, '@location': entry.location }
+            );
+        }
     },
 
     updateGamelogLocationTimeToDatabase(entry) {
