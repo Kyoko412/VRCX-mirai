@@ -36,7 +36,12 @@ const feed = {
 
     addBioToDatabase(entry) {
         sqliteService.executeNonQuery(
-            `INSERT OR IGNORE INTO ${dbVars.userPrefix}_feed_bio (created_at, user_id, display_name, bio, previous_bio) VALUES (@created_at, @user_id, @display_name, @bio, @previous_bio)`,
+            `INSERT INTO ${dbVars.userPrefix}_feed_bio (created_at, user_id, display_name, bio, previous_bio)
+             SELECT @created_at, @user_id, @display_name, @bio, @previous_bio
+             WHERE NOT EXISTS (
+                 SELECT 1 FROM ${dbVars.userPrefix}_feed_bio
+                 WHERE user_id = @user_id AND created_at = @created_at AND bio = @bio AND previous_bio = @previous_bio
+             )`,
             {
                 '@created_at': entry.created_at,
                 '@user_id': entry.userId,
@@ -45,6 +50,45 @@ const feed = {
                 '@previous_bio': entry.previousBio
             }
         );
+    },
+
+    /** Read one account's observed bio changes for a stable user ID. */
+    async getFriendBioHistory(userId, { cursor = null, limit = 50 } = {}) {
+        const rows = [];
+        if (!dbVars.userPrefix || !userId) return { rows, nextCursor: null };
+        const pageSize = Math.min(100, Math.max(1, Math.floor(Number(limit) || 50)));
+        const hasCursor = typeof cursor?.createdAt === 'string' && Number.isInteger(cursor?.id);
+        const params = { '@userId': userId, '@limit': pageSize + 1 };
+        if (hasCursor) {
+            params['@cursorDate'] = cursor.createdAt;
+            params['@cursorId'] = cursor.id;
+        }
+        await sqliteService.execute(
+            (row) => rows.push({ id: row[0], observedAt: row[1], bio: row[2], previousBio: row[3] }),
+            `SELECT id, created_at, bio, previous_bio FROM ${dbVars.userPrefix}_feed_bio
+             WHERE user_id = @userId AND bio IS NOT NULL AND previous_bio IS NOT NULL AND bio <> previous_bio
+             ${hasCursor ? 'AND (created_at < @cursorDate OR (created_at = @cursorDate AND id < @cursorId))' : ''}
+             ORDER BY created_at DESC, id DESC LIMIT @limit`,
+            params
+        );
+        const hasMore = rows.length > pageSize;
+        if (hasMore) rows.pop();
+        const last = rows.at(-1);
+        return { rows, nextCursor: hasMore && last ? { createdAt: last.observedAt, id: last.id } : null };
+    },
+
+    async getFriendBioHistoryCount(userId) {
+        if (!dbVars.userPrefix || !userId) return 0;
+        let count = 0;
+        await sqliteService.execute(
+            (row) => {
+                count = Number(row[0]) || 0;
+            },
+            `SELECT COUNT(*) FROM ${dbVars.userPrefix}_feed_bio
+             WHERE user_id = @userId AND bio IS NOT NULL AND previous_bio IS NOT NULL AND bio <> previous_bio`,
+            { '@userId': userId }
+        );
+        return count;
     },
 
     addAvatarToDatabase(entry) {

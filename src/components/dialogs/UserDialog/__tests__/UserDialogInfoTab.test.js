@@ -236,6 +236,15 @@ describe('UserDialogInfoTab.vue', () => {
     });
 
     describe('dom rendering', () => {
+        test('offers bio history for a user who is not the current account', async () => {
+            const wrapper = mountComponent();
+
+            const historyButton = wrapper.find('[aria-label="dialog.user.info.bio_history_title"]');
+            expect(historyButton.exists()).toBe(true);
+            await historyButton.trigger('click');
+            expect(wrapper.findComponent({ name: 'UserDialogBioHistoryDialog' }).props('open')).toBe(true);
+        });
+
         test('renders imported InstanceActionBar and Spinner components when conditions are met', () => {
             const wrapper = mountComponent();
 

@@ -2,6 +2,7 @@ import { getGroupName, getWorldName, parseLocation } from '../shared/utils';
 import { AppDebug } from '../services/appConfig';
 import { database } from '../services/database';
 import { getAvatarName } from './avatarCoordinator';
+import { createBioChangeEntry } from './bioHistoryEvents';
 import { useFeedStore } from '../stores/feed';
 import { useFriendStore } from '../stores/friend';
 import { useGroupStore } from '../stores/group';
@@ -230,23 +231,8 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
         feedStore.addFeedEntry(feed);
         database.addStatusToDatabase(feed);
     }
-    if (props.bio && props.bio[0] && props.bio[1]) {
-        let bio = '';
-        let previousBio = '';
-        if (props.bio[0]) {
-            bio = props.bio[0];
-        }
-        if (props.bio[1]) {
-            previousBio = props.bio[1];
-        }
-        feed = {
-            created_at: nowIso(),
-            type: 'Bio',
-            userId: ref.id,
-            displayName: ref.displayName,
-            bio,
-            previousBio
-        };
+    feed = createBioChangeEntry(ref, props.bio, nowIso);
+    if (feed) {
         notificationStore.queueFeedNoty(feed);
         sharedFeedStore.addEntry(feed);
         feedStore.addFeedEntry(feed);

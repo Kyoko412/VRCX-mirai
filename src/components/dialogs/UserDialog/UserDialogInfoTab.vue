@@ -143,6 +143,16 @@
                         </span>
                         <div class="flex items-center gap-1">
                             <Button
+                                v-if="userDialog.id && userDialog.id !== currentUser.id"
+                                class="h-5 w-5"
+                                size="icon-sm"
+                                variant="ghost"
+                                :aria-label="t('dialog.user.info.bio_history_title')"
+                                :title="t('dialog.user.info.bio_history_title')"
+                                @click="isBioHistoryDialogOpen = true">
+                                <History class="h-3 w-3" :style="{ color: userDialog.theme.iconColor }" />
+                            </Button>
+                            <Button
                                 v-if="translationApi && userDialog.publicProfileRef?.bio"
                                 class="h-5 w-5"
                                 size="icon-sm"
@@ -442,10 +452,15 @@
         </div>
     </div>
     <EditNoteAndMemoDialog v-model:visible="isEditNoteAndMemoDialogVisible" />
+    <UserDialogBioHistoryDialog
+        v-model:open="isBioHistoryDialogOpen"
+        :user-id="userDialog.id"
+        :display-name="userDialog.ref?.displayName || ''"
+        :current-bio="userDialog.publicProfileRef?.bio" />
 </template>
 
 <script setup>
-    import { Info, Languages, Pencil, Trash2, User } from 'lucide-vue-next';
+    import { History, Info, Languages, Pencil, Trash2, User } from 'lucide-vue-next';
     import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
     import IconFrame from '@/components/IconFrame.vue';
     import { ref, watch } from 'vue';
@@ -483,6 +498,7 @@
     import { showUserDialog } from '../../../coordinators/userCoordinator';
 
     import EditNoteAndMemoDialog from './EditNoteAndMemoDialog.vue';
+    import UserDialogBioHistoryDialog from './UserDialogBioHistoryDialog.vue';
 
     const { t } = useI18n();
 
@@ -505,6 +521,7 @@
     });
 
     const isEditNoteAndMemoDialogVisible = ref(false);
+    const isBioHistoryDialogOpen = ref(false);
     const vrchatCredit = ref(null);
     const translateLoading = ref(false);
 
