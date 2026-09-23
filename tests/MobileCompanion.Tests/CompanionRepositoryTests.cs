@@ -115,6 +115,33 @@ public sealed class CompanionRepositoryTests
     }
 
     [Fact]
+    public void WorldVisitsPageAllEqualTimestampEventsWithoutDuplicates()
+    {
+        const string at = "2026-09-24T02:00:00Z";
+        var db = new FakeDb((sql, args) =>
+        {
+            Assert.Contains("usrme_feed_gps", sql);
+            Assert.Contains("usrme_feed_online_offline", sql);
+            Assert.DoesNotContain("@dateFrom", sql);
+            Assert.Equal("usr_friend", args["@friendId"]);
+            return Enumerable.Range(1, 101).Select(i =>
+                new object[] { (long)i, at, "Online", $"wrld_a:{i}", "World A", DBNull.Value, DBNull.Value }).ToArray();
+        });
+        var session = new MobileSession();
+        session.Open("usr_me", ["usr_friend"]);
+        var repo = new CompanionRepository(db);
+        var first = repo.GetWorldVisits(session.Capture()!, "usr_friend", null, 50);
+        var second = repo.GetWorldVisits(session.Capture()!, "usr_friend", first.NextCursor, 50);
+        var third = repo.GetWorldVisits(session.Capture()!, "usr_friend", second.NextCursor, 50);
+
+        var all = first.Items.Concat(second.Items).Concat(third.Items).ToArray();
+        Assert.Equal(101, all.Length);
+        Assert.Equal(101, all.Select(item => item.EventKey).Distinct().Count());
+        Assert.All(all, item => Assert.Equal(101, item.VisitCount));
+        Assert.Null(third.NextCursor);
+    }
+
+    [Fact]
     public void InvalidCursorAndLimitAreRejectedBeforeDatabaseAccess()
     {
         var db = new FakeDb((_, _) => []);

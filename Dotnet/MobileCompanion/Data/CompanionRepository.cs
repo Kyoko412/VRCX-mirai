@@ -93,6 +93,36 @@ public sealed class CompanionRepository(ICompanionDb db)
             rows.Length > limit && last is not null ? new KeysetCursor(last.ObservedAt, last.VisitKey).Encode() : null);
     }
 
+    public Page<VisitDto> GetWorldVisits(SessionSnapshot snapshot, string friendId, string? cursor, int limit)
+    {
+        ValidateLimit(limit);
+        EnsureFriend(snapshot, friendId);
+        var after = KeysetCursor.Decode(cursor);
+        var gps = Table(snapshot, "feed_gps");
+        var online = Table(snapshot, "feed_online_offline");
+        var sql = $"SELECT id, created_at, type, location, world_name, previous_location, time FROM (" +
+            $"SELECT id, created_at, 'GPS' AS type, location, world_name, previous_location, time, 1 AS event_order " +
+            $"FROM {gps} WHERE user_id = @friendId UNION ALL " +
+            $"SELECT id, created_at, type, location, world_name, NULL AS previous_location, time, " +
+            $"CASE WHEN type = 'Online' THEN 0 ELSE 2 END AS event_order FROM {online} " +
+            "WHERE user_id = @friendId AND type IN ('Online', 'Offline')) " +
+            "ORDER BY created_at ASC, event_order ASC, id ASC";
+        var rows = db.Query(sql, new Dictionary<string, object> { ["@friendId"] = friendId });
+        var events = rows.Select(row => new VisitEvent(AsInt64(row[0]), AsString(row[1]), AsString(row[2]),
+            AsNullableString(row[3]), AsNullableString(row[4]), AsNullableString(row[5]),
+            row[6] is null or DBNull ? null : AsInt64(row[6])));
+        var visits = FriendVisitBuilder.Build(events)
+            .Where(item => after is null || StringComparer.Ordinal.Compare(item.ObservedAt, after.At) < 0
+                || (StringComparer.Ordinal.Compare(item.ObservedAt, after.At) == 0
+                    && StringComparer.Ordinal.Compare(item.EventKey, after.Key) < 0))
+            .Take(limit + 1).ToArray();
+        var items = visits.Take(limit).ToArray();
+        var last = items.LastOrDefault();
+        return new Page<VisitDto>(snapshot.AccountId, items,
+            visits.Length > limit && last is not null
+                ? new KeysetCursor(last.ObservedAt, last.EventKey).Encode() : null);
+    }
+
     internal static void ValidateLimit(int limit)
     {
         if (limit is < 1 or > 50) throw new ArgumentOutOfRangeException(nameof(limit));
