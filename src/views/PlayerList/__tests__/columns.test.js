@@ -99,6 +99,42 @@ describe('views/PlayerList/columns.jsx', () => {
         mocks.onUnblockChatbox.mockReset();
     });
 
+    test('shows confirmed mutual status and encounters for a player', () => {
+        const cols = createColumns({
+            randomUserColours: { value: false },
+            chatboxUserBlacklist: { value: new Map() },
+            onBlockChatbox: mocks.onBlockChatbox,
+            onUnblockChatbox: mocks.onUnblockChatbox,
+            sortAlphabetically: mocks.sortAlphabetically,
+            currentStatuses: { value: new Map([['usr_1', { status: 'qualified', mutualFriendCount: 2 }]]) },
+            summaries: { value: new Map([['usr_1', { qualifiedCount: 3, unknownCount: 0 }]]) }
+        });
+        const row = makeRow();
+        expect(cols.find((col) => col.id === 'mutualStatus').cell({ row }).children).toContain('2');
+        expect(cols.find((col) => col.id === 'confirmedEncounters').cell({ row }).children).toContain('3');
+    });
+
+    test('does not show a self encounter count', () => {
+        const cols = createColumns({ selfUserId: 'usr_1' });
+        const row = makeRow();
+        expect(cols.find((col) => col.id === 'mutualStatus').cell({ row }).children).toContain('—');
+        expect(cols.find((col) => col.id === 'confirmedEncounters').cell({ row }).children).toContain('—');
+    });
+
+    test('distinguishes a confirmed zero mutual count from an unknown result', () => {
+        const row = makeRow();
+        const zeroColumns = createColumns({
+            currentStatuses: { value: new Map([['usr_1', { status: 'not_qualified', mutualFriendCount: 0 }]]) }
+        });
+        const unknownColumns = createColumns({
+            currentStatuses: { value: new Map([['usr_1', { status: 'unknown', mutualFriendCount: null }]]) }
+        });
+        expect(zeroColumns.find((col) => col.id === 'mutualStatus').cell({ row }).children).toContain('0');
+        expect(unknownColumns.find((col) => col.id === 'mutualStatus').cell({ row }).children).toContain(
+            'table.playerList.mutualUnknown'
+        );
+    });
+
     test('displayName sorting uses injected sortAlphabetically helper', () => {
         const cols = createColumns({
             randomUserColours: { value: false, __v_isRef: true },

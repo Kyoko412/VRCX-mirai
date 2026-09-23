@@ -1546,6 +1546,16 @@
                     "friend_order": "添加顺序"
                 }
             },
+            "encounters": {
+                "header": "共同好友同房记录",
+                "observedNote": "仅统计观察到同房且当时确认有共同好友的记录，并非完整的 VRChat 历史。",
+                "loading": "正在加载同房记录…",
+                "loadError": "无法加载同房记录。",
+                "empty": "暂无已确认的同房记录。",
+                "count": "已确认 {count} 次同房",
+                "observedAt": "同房时间",
+                "mutualCount": "当时有 {count} 位共同好友"
+            },
             "activity": {
                 "header": "活动记录",
                 "load": "加载活动记录",
@@ -3047,6 +3057,9 @@
         },
         "playerList": {
             "avatar": "模型",
+            "mutualStatus": "共同好友",
+            "mutualUnknown": "无法确认",
+            "confirmedEncounters": "已确认同房",
             "timer": "时长",
             "photonId": "Photon ID",
             "icon": "图标",

@@ -29,6 +29,7 @@ import webApiService from '../services/webapi';
 
 import * as workerTimers from 'worker-timers';
 import { useActivityStore } from './activity';
+import { useMutualEncountersStore } from './mutualEncounters';
 
 export const useAuthStore = defineStore('Auth', () => {
     const advancedSettingsStore = useAdvancedSettingsStore();
@@ -163,6 +164,7 @@ export const useAuthStore = defineStore('Auth', () => {
     }
 
     async function handleLogoutEvent() {
+        useMutualEncountersStore().endVisit();
         await runLogoutFlow();
     }
 
@@ -828,6 +830,7 @@ export const useAuthStore = defineStore('Auth', () => {
             console.error('No current user after login complete, aborting post-login flow.');
             return;
         }
+        useMutualEncountersStore().endVisit();
         await database.initUserTables(userStore.currentUser.id);
         advancedSettingsStore.runAvatarAutoCleanup(userStore.currentUser.id);
         watchState.isLoggedIn = true;

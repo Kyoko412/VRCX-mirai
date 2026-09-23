@@ -9,6 +9,7 @@ import { gameLog } from './gameLog.js';
 import { memos } from './memos.js';
 import { moderation } from './moderation.js';
 import { mutualGraph } from './mutualGraph.js';
+import { mutualEncounters } from './mutualEncounters.js';
 import { notifications } from './notifications.js';
 import { tableAlter } from './tableAlter.js';
 import { tableFixes } from './tableFixes.js';
@@ -43,6 +44,7 @@ const database = {
     ...tableFixes,
     ...tableSize,
     ...mutualGraph,
+    ...mutualEncounters,
 
     setMaxTableSize(limit) {
         dbVars.maxTableSize = limit;
@@ -154,6 +156,12 @@ const database = {
         );
         await sqliteService.executeNonQuery(
             `CREATE TABLE IF NOT EXISTS ${dbVars.userPrefix}_mutual_graph_meta (friend_id TEXT PRIMARY KEY, last_fetched_at TEXT, opted_out INTEGER DEFAULT 0)`
+        );
+        await sqliteService.executeNonQuery(
+            `CREATE TABLE IF NOT EXISTS ${dbVars.userPrefix}_mutual_encounters_v1 (visit_key TEXT NOT NULL, other_user_id TEXT NOT NULL, location TEXT NOT NULL, observed_at TEXT NOT NULL, display_name_snapshot TEXT, world_name_snapshot TEXT, status TEXT NOT NULL DEFAULT 'unknown', mutual_friend_count INTEGER, checked_at TEXT, PRIMARY KEY (visit_key, other_user_id))`
+        );
+        await sqliteService.executeNonQuery(
+            `CREATE INDEX IF NOT EXISTS ${dbVars.userPrefix}_mutual_encounters_user_status_idx ON ${dbVars.userPrefix}_mutual_encounters_v1 (other_user_id, status)`
         );
     },
 

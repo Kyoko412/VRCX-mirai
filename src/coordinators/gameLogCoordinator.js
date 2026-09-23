@@ -29,6 +29,7 @@ import { useGeneralSettingsStore } from '../stores/settings/general';
 import { useInstanceStore } from '../stores/instance';
 import { useLocationStore } from '../stores/location';
 import { useModalStore } from '../stores/modal';
+import { useMutualEncountersStore } from '../stores/mutualEncounters';
 import { useNotificationStore } from '../stores/notification';
 import { usePhotonStore } from '../stores/photon';
 import { useSharedFeedStore } from '../stores/sharedFeed';
@@ -37,6 +38,10 @@ import { useVrStore } from '../stores/vr';
 import { useVrcxStore } from '../stores/vrcx';
 
 import gameLogService from '../services/gameLog.js';
+import {
+    shouldRestoreObservedVisit,
+    syncObservedEncounterEvent
+} from '../services/mutualEncounters/syncObservedEncounter';
 
 import * as workerTimers from 'worker-timers';
 
@@ -62,7 +67,7 @@ export async function tryLoadPlayerList() {
     if (data.length === 0) {
         return;
     }
-    let length = 0;
+    let length = -1;
     for (i = data.length - 1; i > -1; i--) {
         ctx = data[i];
         if (ctx.type === 'Location') {
@@ -77,10 +82,11 @@ export async function tryLoadPlayerList() {
             break;
         }
     }
-    if (length > 0) {
+    if (length >= 0) {
         for (i = length + 1; i < data.length; i++) {
             ctx = data[i];
             if (ctx.type === 'OnPlayerJoined') {
+                const observedUserId = ctx.userId || '';
                 if (!ctx.userId) {
                     ctx.userId =
                         findUserByDisplayName(
@@ -92,6 +98,7 @@ export async function tryLoadPlayerList() {
                 const userMap = {
                     displayName: ctx.displayName,
                     userId: ctx.userId,
+                    observedUserId,
                     joinTime: Date.parse(ctx.created_at),
                     lastAvatar: ''
                 };
@@ -118,6 +125,29 @@ export async function tryLoadPlayerList() {
         userStore.applyUserDialogLocation();
         instanceStore.applyWorldDialogInstances();
         instanceStore.applyGroupDialogInstances();
+        if (
+            Number.isFinite(locationStore.lastLocation.date) &&
+            shouldRestoreObservedVisit(
+                locationStore.lastLocation.location,
+                userStore.currentUser.$locationTag || userStore.currentUser.location,
+                userStore.currentUser.$travelingToLocation ||
+                    userStore.currentUser.travelingToLocation ||
+                    locationStore.lastLocationDestination
+            )
+        )
+            void useMutualEncountersStore().restoreVisit(
+                {
+                    accountId: userStore.currentUser.id,
+                    location: locationStore.lastLocation.location,
+                    enteredAt: new Date(locationStore.lastLocation.date).toISOString(),
+                    worldName: locationStore.lastLocation.name
+                },
+                [...locationStore.lastLocation.playerList.values()].map((player) => ({
+                    userId: player.observedUserId,
+                    displayName: player.displayName,
+                    observedAt: Number.isFinite(player.joinTime) ? new Date(player.joinTime).toISOString() : undefined
+                }))
+            );
     }
 }
 
@@ -127,8 +157,9 @@ export async function tryLoadPlayerList() {
  *
  * @param {object} gameLog
  * @param {string} location
+ * @param {{ trackEncounter?: boolean }} [options]
  */
-export function addGameLogEntry(gameLog, location) {
+export function addGameLogEntry(gameLog, location, { trackEncounter = true } = {}) {
     const gameLogStore = useGameLogStore();
     const locationStore = useLocationStore();
     const instanceStore = useInstanceStore();
@@ -153,6 +184,18 @@ export function addGameLogEntry(gameLog, location) {
         userId =
             findUserByDisplayName(userStore.cachedUsers, gameLog.displayName, userStore.cachedUserIdsByDisplayName)
                 ?.id ?? '';
+    }
+    if (trackEncounter && (gameStore.isGameRunning || gameLog.type === 'vrc-quit')) {
+        syncObservedEncounterEvent(
+            { ...gameLog, userId: String(gameLog.userId || '') },
+            {
+                store: useMutualEncountersStore(),
+                accountId: userStore.currentUser.id,
+                currentLocation: locationStore.lastLocation.location,
+                enteredAt: locationStore.lastLocation.date,
+                worldName: locationStore.lastLocation.name
+            }
+        );
     }
     switch (gameLog.type) {
         case 'location-destination':
@@ -237,7 +280,13 @@ export function addGameLogEntry(gameLog, location) {
             }
             vrStore.updateVRLastLocation();
             instanceStore.getCurrentInstanceUserList();
-            entry = createJoinLeaveEntry('OnPlayerJoined', gameLog.dt, gameLog.displayName, location, userId);
+            entry = createJoinLeaveEntry(
+                'OnPlayerJoined',
+                gameLog.dt,
+                gameLog.displayName,
+                location,
+                gameLog.userId || ''
+            );
             database.addGamelogJoinLeaveToDatabase(entry);
             break;
         case 'player-left':
@@ -469,7 +518,7 @@ async function updateGameLog(dateTill) {
         if (gameLog.type === 'location') {
             location = gameLog.location;
         }
-        addGameLogEntry(gameLog, location);
+        addGameLogEntry(gameLog, location, { trackEncounter: false });
     }
 }
 

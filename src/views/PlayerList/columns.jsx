@@ -52,7 +52,10 @@ export const createColumns = ({
     onBlockChatbox,
     onUnblockChatbox,
     sortAlphabetically,
-    userImage
+    userImage,
+    currentStatuses,
+    summaries,
+    selfUserId
 }) => {
     const cols = [
         {
@@ -112,6 +115,35 @@ export const createColumns = ({
                 const userRef = row.original?.ref;
                 const style = randomUserColours?.value ? { color: userRef?.$userColour } : null;
                 return <span style={style}>{userRef?.displayName ?? ''}</span>;
+            }
+        },
+        {
+            id: 'mutualStatus',
+            accessorFn: (row) => currentStatuses?.value?.get(row?.ref?.id)?.mutualFriendCount ?? -1,
+            header: () => t('table.playerList.mutualStatus'),
+            size: 130,
+            meta: { label: () => t('table.playerList.mutualStatus') },
+            cell: ({ row }) => {
+                const userId = row.original?.ref?.id;
+                if (!userId || userId === selfUserId) return <span>{'—'}</span>;
+                const state = currentStatuses?.value?.get(userId);
+                const label =
+                    state?.status === 'qualified' || state?.status === 'not_qualified'
+                        ? String(state.mutualFriendCount)
+                        : t('table.playerList.mutualUnknown');
+                return <span>{label}</span>;
+            }
+        },
+        {
+            id: 'confirmedEncounters',
+            accessorFn: (row) => summaries?.value?.get(row?.ref?.id)?.qualifiedCount ?? 0,
+            header: () => t('table.playerList.confirmedEncounters'),
+            size: 120,
+            meta: { label: () => t('table.playerList.confirmedEncounters') },
+            cell: ({ row }) => {
+                const userId = row.original?.ref?.id;
+                if (!userId || userId === selfUserId) return <span>{'—'}</span>;
+                return <span>{String(summaries?.value?.get(userId)?.qualifiedCount ?? 0)}</span>;
             }
         },
         {

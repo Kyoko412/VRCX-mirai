@@ -1557,6 +1557,16 @@
                     "friend_order": "Friend Order"
                 }
             },
+            "encounters": {
+                "header": "Mutual friend encounters",
+                "observedNote": "Confirmed from observed room visits and mutual friends at the time. This is not a complete VRChat history.",
+                "loading": "Loading encounters...",
+                "loadError": "Could not load encounters.",
+                "empty": "No confirmed encounters yet.",
+                "count": "{count} confirmed encounters",
+                "observedAt": "Seen together",
+                "mutualCount": "{count} mutual friends at the time"
+            },
             "activity": {
                 "header": "Activity",
                 "load": "Load Activity",
@@ -3167,6 +3177,9 @@
         },
         "playerList": {
             "avatar": "Avatar",
+            "mutualStatus": "Mutual friends",
+            "mutualUnknown": "Unconfirmed",
+            "confirmedEncounters": "Confirmed meetings",
             "timer": "Timer",
             "photonId": "Photon ID",
             "icon": "Icons",

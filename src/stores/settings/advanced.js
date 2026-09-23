@@ -8,6 +8,7 @@ import { database } from '../../services/database';
 import { languageCodes } from '../../localization';
 import { useGameStore } from '../game';
 import { useModalStore } from '../modal';
+import { useMutualEncountersStore } from '../mutualEncounters';
 import { useUpdateLoopStore } from '../updateLoop';
 import { useVRCXUpdaterStore } from '../vrcxUpdater';
 import { useVrcxStore } from '../vrcx';
@@ -417,6 +418,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
     }
     async function setGameLogDisabled() {
         gameLogDisabled.value = !gameLogDisabled.value;
+        if (gameLogDisabled.value) useMutualEncountersStore().endVisit();
         await configRepository.setBool('VRCX_gameLogDisabled', gameLogDisabled.value);
     }
 

@@ -12,6 +12,7 @@ import { useLaunchStore } from '../stores/launch';
 import { useLocationStore } from '../stores/location';
 import { runLastLocationResetFlow } from './locationCoordinator';
 import { useModalStore } from '../stores/modal';
+import { useMutualEncountersStore } from '../stores/mutualEncounters';
 import { useNotificationStore } from '../stores/notification';
 import { useUpdateLoopStore } from '../stores/updateLoop';
 import { useUserStore } from '../stores/user';
@@ -38,6 +39,7 @@ export async function runGameRunningChangedFlow(isGameRunning) {
     if (isGameRunning) {
         userStore.markCurrentUserGameStarted();
     } else {
+        useMutualEncountersStore().endVisit();
         await configRepository.setBool('isGameNoVR', gameStore.isGameNoVR);
         // persist last session data before markCurrentUserGameStopped resets $online_for
         const sessionStart = userStore.currentUser.$online_for;

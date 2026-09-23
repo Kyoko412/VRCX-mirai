@@ -59,6 +59,12 @@
                         :user-id="userDialog.id" />
                 </template>
 
+                <template #Encounters>
+                    <UserDialogMutualEncountersTab
+                        v-if="userDialog.id !== currentUser.id && userDialog.activeTab === 'Encounters'"
+                        :user-id="userDialog.id" />
+                </template>
+
                 <template #JSON>
                     <DialogJsonTab
                         class="rounded-xl bg-(--profile-card) p-2"
@@ -119,6 +125,7 @@
     import UserDialogGroupsTab from './UserDialogGroupsTab.vue';
     import UserDialogInfoTab from './UserDialogInfoTab.vue';
     import UserDialogMutualFriendsTab from './UserDialogMutualFriendsTab.vue';
+    import UserDialogMutualEncountersTab from './UserDialogMutualEncountersTab.vue';
     import UserDialogWorldsTab from './UserDialogWorldsTab.vue';
     import UserSummaryHeader from './UserSummaryHeader.vue';
     import FriendWorldVisitsPanel from '../../../views/FriendWorldVisits/FriendWorldVisitsPanel.vue';
@@ -157,6 +164,10 @@
         if (isVisitedFriend.value) {
             const jsonIdx = tabs.findIndex((tab) => tab.value === 'JSON');
             tabs.splice(jsonIdx, 0, { value: 'Visits', label: t('view.friend_world_visits.tab_label') });
+        }
+        if (userDialog.value.id !== currentUser.value.id) {
+            const jsonIdx = tabs.findIndex((tab) => tab.value === 'JSON');
+            tabs.splice(jsonIdx, 0, { value: 'Encounters', label: t('dialog.user.encounters.header') });
         }
         // Insert Activity before JSON
         const jsonIdx = tabs.findIndex((tab) => tab.value === 'JSON');

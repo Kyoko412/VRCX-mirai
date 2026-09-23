@@ -202,6 +202,7 @@
     import { DataTableLayout } from '../../components/ui/data-table';
     import { createColumns } from './columns.jsx';
     import { useVrcxVueTable } from '../../lib/table/useVrcxVueTable';
+    import { useMutualEncountersStore } from '../../stores/mutualEncounters';
 
     import ChatboxBlacklistDialog from './dialogs/ChatboxBlacklistDialog.vue';
     import Timer from '../../components/Timer.vue';
@@ -219,6 +220,8 @@
 
     const { lastLocation } = storeToRefs(useLocationStore());
     const { currentInstanceLocation, currentInstanceWorld, currentInstanceUsersData } = storeToRefs(useInstanceStore());
+    const mutualEncountersStore = useMutualEncountersStore();
+    const { currentStatuses, summaries } = storeToRefs(mutualEncountersStore);
 
     const worldImageError = ref(false);
 
@@ -231,6 +234,17 @@
     const { getCurrentInstanceUserList } = useInstanceStore();
     const { showFullscreenImageDialog } = useGalleryStore();
     const { currentUser } = storeToRefs(useUserStore());
+    watch(
+        () => [
+            currentUser.value?.id,
+            currentInstanceUsersData.value
+                .map((row) => row?.ref?.id)
+                .filter(Boolean)
+                .join('|')
+        ],
+        () => void mutualEncountersStore.refreshSummaries(currentInstanceUsersData.value.map((row) => row?.ref?.id)),
+        { immediate: true }
+    );
 
     const playerListRef = ref(null);
     const playerListHeaderRef = ref(null);
@@ -291,16 +305,21 @@
         return a[field].toLowerCase().localeCompare(b[field].toLowerCase());
     }
 
-    const playerListColumns = computed(() =>
-        createColumns({
+    const playerListColumns = computed(() => {
+        const statusMap = currentStatuses.value;
+        const summaryMap = summaries.value;
+        return createColumns({
             randomUserColours,
             chatboxUserBlacklist,
             onBlockChatbox: addChatboxUserBlacklist,
             onUnblockChatbox: deleteChatboxUserBlacklist,
             sortAlphabetically,
-            userImage
-        })
-    );
+            userImage,
+            currentStatuses: { value: statusMap },
+            summaries: { value: summaryMap },
+            selfUserId: currentUser.value?.id
+        });
+    });
 
     const { table: playerListTable } = useVrcxVueTable({
         persistKey: 'playerList',
