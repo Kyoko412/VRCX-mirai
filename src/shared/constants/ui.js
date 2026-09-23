@@ -72,6 +72,13 @@ const navDefinitions = [
         routeName: 'friend-list'
     },
     {
+        key: 'friend-world-visits',
+        icon: 'ri-map-pin-time-line',
+        tooltip: 'nav_tooltip.friend_world_visits',
+        labelKey: 'nav_tooltip.friend_world_visits',
+        routeName: 'friend-world-visits'
+    },
+    {
         key: 'moderation',
         icon: 'ri-shield-user-line',
         tooltip: 'nav_tooltip.moderation',

@@ -53,6 +53,12 @@
                     <UserDialogActivityTab ref="activityTabRef" />
                 </template>
 
+                <template #Visits>
+                    <FriendWorldVisitsPanel
+                        v-if="isVisitedFriend && userDialog.activeTab === 'Visits'"
+                        :user-id="userDialog.id" />
+                </template>
+
                 <template #JSON>
                     <DialogJsonTab
                         class="rounded-xl bg-(--profile-card) p-2"
@@ -115,6 +121,7 @@
     import UserDialogMutualFriendsTab from './UserDialogMutualFriendsTab.vue';
     import UserDialogWorldsTab from './UserDialogWorldsTab.vue';
     import UserSummaryHeader from './UserSummaryHeader.vue';
+    import FriendWorldVisitsPanel from '../../../views/FriendWorldVisits/FriendWorldVisitsPanel.vue';
 
     import ModerateGroupDialog from '../ModerateGroupDialog.vue';
     import SendInviteRequestDialog from './SendInviteRequestDialog.vue';
@@ -131,6 +138,10 @@
     });
 
     const { t } = useI18n();
+    const friendStore = useFriendStore();
+    const isVisitedFriend = computed(
+        () => userDialog.value.id !== currentUser.value.id && friendStore.friends.has(userDialog.value.id)
+    );
     const userDialogTabs = computed(() => {
         const tabs = [
             { value: 'Info', label: t('dialog.user.info.header') },
@@ -142,6 +153,10 @@
         ];
         if (userDialog.value.id !== currentUser.value.id && !currentUser.value.hasSharedConnectionsOptOut) {
             tabs.splice(1, 0, { value: 'mutual', label: t('dialog.user.mutual_friends.header') });
+        }
+        if (isVisitedFriend.value) {
+            const jsonIdx = tabs.findIndex((tab) => tab.value === 'JSON');
+            tabs.splice(jsonIdx, 0, { value: 'Visits', label: t('view.friend_world_visits.tab_label') });
         }
         // Insert Activity before JSON
         const jsonIdx = tabs.findIndex((tab) => tab.value === 'JSON');
@@ -179,7 +194,7 @@
     const { inviteGroupDialog } = storeToRefs(useGroupStore());
     const { lastLocation, lastLocationDestination } = storeToRefs(useLocationStore());
     const { refreshInviteMessageTableData } = useInviteStore();
-    const { friendLogTable } = storeToRefs(useFriendStore());
+    const { friendLogTable } = storeToRefs(friendStore);
     const { clearInviteImageUpload, showGalleryPage } = useGalleryStore();
 
     const { applyPlayerModeration, handlePlayerModerationDelete } = useModerationStore();
@@ -344,6 +359,11 @@
 
     function loadLastActiveTab() {
         const tab = userDialog.value.lastActiveTab;
+        if (tab === 'Visits' && !isVisitedFriend.value) {
+            userDialog.value.activeTab = 'Info';
+            handleUserDialogTab('Info');
+            return;
+        }
         handleUserDialogTab(tab);
     }
 

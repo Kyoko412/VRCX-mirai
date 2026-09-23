@@ -21,7 +21,7 @@ export function createBaseDefaultNavLayout(t) {
             nameKey: 'nav_tooltip.social',
             name: t('nav_tooltip.social'),
             icon: 'ri-group-line',
-            items: ['friend-log', 'friend-list', 'moderation']
+            items: ['friend-log', 'friend-list', 'friend-world-visits', 'moderation']
         },
         { type: 'item', key: 'notification' },
         { type: 'item', key: 'my-avatars' },

@@ -100,6 +100,43 @@ const feed = {
         );
     },
 
+    /** Read the location changes that VRCX has observed for one friend. */
+    async getFriendWorldVisitEvents(userId, dateFrom = '') {
+        const events = [];
+        const dateFilter = dateFrom ? ' AND created_at >= @dateFrom' : '';
+        const params = { '@userId': userId };
+        if (dateFrom) {
+            params['@dateFrom'] = dateFrom;
+        }
+        await sqliteService.execute(
+            (row) => {
+                events.push({
+                    created_at: row[0],
+                    type: row[1],
+                    location: row[2],
+                    worldName: row[3],
+                    previousLocation: row[4],
+                    time: row[5]
+                });
+            },
+            `SELECT created_at, type, location, world_name, previous_location, time
+             FROM (
+                 SELECT id, created_at, 'GPS' AS type, location, world_name, previous_location, time,
+                        1 AS event_order
+                 FROM ${dbVars.userPrefix}_feed_gps
+                 WHERE user_id = @userId${dateFilter}
+                 UNION ALL
+                 SELECT id, created_at, type, location, world_name, NULL AS previous_location, time,
+                        CASE WHEN type = 'Online' THEN 0 ELSE 2 END AS event_order
+                 FROM ${dbVars.userPrefix}_feed_online_offline
+                 WHERE user_id = @userId${dateFilter} AND type IN ('Online', 'Offline')
+             )
+             ORDER BY created_at ASC, event_order ASC, id ASC`,
+            params
+        );
+        return events;
+    },
+
     async searchFeedDatabase(
         search,
         filters,

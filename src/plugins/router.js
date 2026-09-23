@@ -93,6 +93,11 @@ const routes = [
                 component: FriendList
             },
             {
+                path: 'social/friend-world-visits',
+                name: 'friend-world-visits',
+                component: () => import('./../views/FriendWorldVisits/FriendWorldVisits.vue')
+            },
+            {
                 path: 'charts',
                 name: 'charts',
                 redirect: { name: 'charts-instance' }
