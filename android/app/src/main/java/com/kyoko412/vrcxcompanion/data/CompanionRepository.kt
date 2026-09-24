@@ -15,7 +15,7 @@ import com.kyoko412.vrcxcompanion.network.VisitDto
 import com.kyoko412.vrcxcompanion.pairing.PairingStore
 import com.kyoko412.vrcxcompanion.pairing.SavedPairing
 
-class CompanionRepository(private val store: PairingStore, private var api: CompanionApi) : FriendsSource, HistorySource {
+class CompanionRepository(private val store: PairingStore, private var api: CompanionApi) : FriendsSource, HistorySource, ConnectionSource {
     private var pairing: SavedPairing? = store.load()
     var accountId: String? = null
         private set
@@ -37,7 +37,7 @@ class CompanionRepository(private val store: PairingStore, private var api: Comp
         throw error
     }
 
-    suspend fun status(): StatusDto = read {
+    override suspend fun status(): StatusDto = read {
         val next = api.status(token())
         if (accountId != null && accountId != next.accountId) {
             clearPages()
@@ -93,7 +93,7 @@ class CompanionRepository(private val store: PairingStore, private var api: Comp
         page
     }
 
-    suspend fun gameLog(cursor: String?): Page<GameLocationDto> = read {
+    override suspend fun gameLog(cursor: String?): Page<GameLocationDto> = read {
         val expected = expectedAccount()
         val page = api.gameLog(token(), cursor)
         checkAccount(page.accountId, expected)

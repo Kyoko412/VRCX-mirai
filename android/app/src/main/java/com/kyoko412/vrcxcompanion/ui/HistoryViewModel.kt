@@ -59,6 +59,13 @@ class HistoryViewModel(private val source: HistorySource, private val scope: Cor
         load(null)
     }
 
+    fun clear() {
+        request?.cancel()
+        visitPages.clear(); encounterPages.clear(); bioPages.clear(); cursors.clear()
+        mutableState.value = HistoryUiState(friendId = mutableState.value.friendId,
+            tab = mutableState.value.tab)
+    }
+
     fun loadMore() {
         if (mutableState.value.loading) return
         mutableState.value.nextCursor?.let(::load)

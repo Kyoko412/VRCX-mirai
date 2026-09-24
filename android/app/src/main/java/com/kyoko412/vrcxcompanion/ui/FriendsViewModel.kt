@@ -37,6 +37,12 @@ class FriendsViewModel(private val source: FriendsSource, private val scope: Cor
 
     fun refresh() = search(mutableState.value.search)
 
+    fun clear() {
+        request?.cancel()
+        accumulator.clear()
+        mutableState.value = FriendsUiState(search = mutableState.value.search)
+    }
+
     fun loadMore() {
         if (mutableState.value.loading) return
         mutableState.value.nextCursor?.let(::load)
