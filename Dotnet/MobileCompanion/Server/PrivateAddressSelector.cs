@@ -18,11 +18,23 @@ public static class PrivateAddressSelector
     public static IReadOnlyList<IPAddress> Available()
     {
         if (!OperatingSystem.IsWindows()) return [];
-        return NetworkInterface.GetAllNetworkInterfaces()
-            .Where(nic => nic.OperationalStatus == OperationalStatus.Up && IsPhysicalLan(nic.NetworkInterfaceType))
-            .Where(nic => IsPrivateProfile(nic.GetIPProperties().GetIPv4Properties()?.Index))
-            .SelectMany(nic => nic.GetIPProperties().UnicastAddresses)
-            .Select(item => item.Address).Where(IsPrivateIpv4).Distinct().ToArray();
+        var addresses = new HashSet<IPAddress>();
+        foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
+        {
+            if (nic.OperationalStatus != OperationalStatus.Up || !IsPhysicalLan(nic.NetworkInterfaceType)) continue;
+            try
+            {
+                var properties = nic.GetIPProperties();
+                if (!IsPrivateProfile(properties.GetIPv4Properties()?.Index)) continue;
+                foreach (var item in properties.UnicastAddresses)
+                    if (IsPrivateIpv4(item.Address)) addresses.Add(item.Address);
+            }
+            catch (NetworkInformationException)
+            {
+                // Some active adapters do not have IPv4 configured.
+            }
+        }
+        return addresses.ToArray();
     }
 
     public static bool CanBind(IPAddress address) => Available().Contains(address);

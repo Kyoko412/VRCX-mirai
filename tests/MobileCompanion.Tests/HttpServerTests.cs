@@ -119,6 +119,13 @@ public sealed class HttpServerTests
         Assert.True(PrivateAddressSelector.IsPrivateIpv4(IPAddress.Parse("192.168.1.10")));
     }
 
+    [Fact]
+    public void ProductionSelectorSkipsHostAdaptersWithoutIpv4()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        Assert.All(PrivateAddressSelector.Available(), address => Assert.True(PrivateAddressSelector.IsPrivateIpv4(address)));
+    }
+
     private static StringContent Json(string value) => new(value, Encoding.UTF8, "application/json");
 
     private sealed class FakeDb : ICompanionDb

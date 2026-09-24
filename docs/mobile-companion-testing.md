@@ -1,12 +1,13 @@
 # Mobile companion test record
 
-The desktop companion requires **.NET 10 SDK** to build. After `npm ci`, build the
-Windows CEF app with:
+The desktop companion requires **.NET 10 SDK** to build and the ASP.NET Core 10
+runtime to launch. After `npm ci`, build the Windows CEF app with:
 
 ```powershell
 dotnet test tests/MobileCompanion.Tests/VRCX.MobileCompanion.Tests.csproj -c Release
 npm test -- src/services/database/__tests__/mobileGameOwnership.test.js src/coordinators/__tests__/mobileCompanionLogout.test.js src/views/Settings/components/__tests__/MobileCompanionSettings.test.js
 dotnet build Dotnet/VRCX-Cef.csproj -c Release -p:Platform=x64 --runtime win-x64
+npm run prod
 ```
 
 The resulting development executable is `build/Cef/VRCX.exe`; the installed
@@ -20,7 +21,7 @@ must be on the same Wi-Fi, without client isolation.
 
 | Check                                                                         | Result                                                                    |
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| .NET library and HTTPS route tests, including real two-account SQLite fixture | 40 passed                                                                 |
+| .NET library and HTTPS route tests, including real two-account SQLite fixture | 41 passed                                                                 |
 | Frontend companion settings, logout, game ownership                           | 8 passed                                                                  |
 | CEF x64 Release build                                                         | Passed after settings integration                                         |
 | Full format check                                                             | Passed after formatter alignment                                          |
@@ -28,7 +29,7 @@ must be on the same Wi-Fi, without client isolation.
 | Android debug APK and instrumentation APK compilation                         | Passed                                                                    |
 | Android CI debug APK artifact                                                 | [Passed](https://github.com/Kyoko412/VRCX-mirai/actions/runs/35976995378) |
 | Release signing with a disposable test key                                    | Built and verified (v2); test key and APK deleted                         |
-| Android instrumentation execution                                             | Blocked: no online device                                                 |
+| Android instrumentation execution on Samsung SM-S9280, Android 16 (API 36)    | 5 passed on 2026-09-24                                                    |
 | Full frontend `npm test` suite                                                | Existing unrelated cases fail; see note below                             |
 
 The two-account fixture requests all five data routes over a live loopback HTTPS
@@ -45,22 +46,29 @@ recorded here rather than counted as a companion regression.
 
 ## Physical LAN acceptance
 
-These checks require a second LAN device and the Android APK. Record the date,
-Windows address, Android version, and outcome when run:
+The Samsung SM-S9280 and Windows PC are on the same Private Wi-Fi subnet
+(`172.24.80.0/20`). The debug APK was installed and opened on the phone. The
+desktop build was launched with a local .NET 10 SDK, and TCP 34682 is reachable
+from the phone. During this test, two runtime defects were found and fixed:
+network interfaces without IPv4 made address enumeration throw, and CefSharp
+converted a JavaScript friend ID array to `List<object>` rather than `string[]`.
+The desktop app then logged in successfully without the friend-sync error.
 
-| Check                                                                     | Status      |
-| ------------------------------------------------------------------------- | ----------- |
-| Scan QR, request pairing, approve on PC, read friends and three histories | Not run yet |
-| Read account-owned game log                                               | Not run yet |
-| Log out or switch account during a read                                   | Not run yet |
-| Revoke phone token and disable service                                    | Not run yet |
-| Change PC LAN IP; reject a different TLS key at the same IP               | Not run yet |
-| Deny Android local-network permission and retry                           | Not run yet |
-| Confirm Windows Public profile has no inbound allow rule                  | Not run yet |
+| Check                                                                     | Status                                   |
+| ------------------------------------------------------------------------- | ---------------------------------------- |
+| Phone to PC TCP 34682 on the Private Wi-Fi                                | Passed                                   |
+| Scan QR, request pairing, approve on PC, read friends and three histories | Not run yet                              |
+| Read account-owned game log                                               | Not run yet                              |
+| Log out or switch account during a read                                   | Not run yet                              |
+| Revoke phone token and disable service                                    | Not run yet                              |
+| Change PC LAN IP; reject a different TLS key at the same IP               | Not run yet                              |
+| Deny Android local-network permission and retry                           | Not applicable on Android 16; test on 17 |
+| Confirm Windows Public profile has no inbound allow rule                  | Failed: Windows added broad app rules    |
 
-The Android client code and debug APK are built. The connected Android emulator
-remained `offline` in `adb devices`, and no physical phone was attached, so
-instrumentation and same-Wi-Fi acceptance have not run. The debug APK is for
-review and testing; it has not been signed with an owner release key or
-published as a GitHub Release. No physical-device outcome is inferred from
-unit tests, APK compilation or the desktop loopback fixture.
+The Windows firewall automatically created inbound rules for this worktree's
+`VRCX.exe` covering both Private and Public profiles, even though the service
+binds only to an address on a Private profile. Restrict these rules to Private
+before treating the LAN setup as ready for general use. The current user does
+not have permission to edit the firewall rules. The debug APK is for review
+and testing; it has not been signed with an owner release key or published as
+a GitHub Release.

@@ -41,7 +41,7 @@ export const useFriendStore = defineStore('Friend', () => {
 
     async function setMobileVerifiedFriends(accountId, userIds) {
         if (typeof AppApi !== 'undefined' && typeof AppApi.MobileCompanionSetVerifiedFriends === 'function') {
-            await AppApi.MobileCompanionSetVerifiedFriends(accountId, userIds);
+            await AppApi.MobileCompanionSetVerifiedFriends(accountId, JSON.stringify(userIds));
         }
     }
 

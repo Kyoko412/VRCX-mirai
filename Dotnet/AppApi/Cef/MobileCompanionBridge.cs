@@ -121,9 +121,10 @@ internal sealed class MobileCompanionBridge
         _session.Open(accountId, []);
     }
 
-    public void SetVerifiedFriends(string accountId, string[] friendIds)
+    public void SetVerifiedFriends(string accountId, string friendIdsJson)
     {
-        _session.TryUpdateFriendsForAccount(accountId, friendIds ?? []);
+        var friendIds = JsonSerializer.Deserialize<string[]>(friendIdsJson, CompanionJson.Options) ?? [];
+        _session.TryUpdateFriendsForAccount(accountId, friendIds);
     }
 
     public async Task ClearActiveAccount()
@@ -175,7 +176,7 @@ public partial class AppApiCef
     public string MobileCompanionListDevices() => MobileCompanionBridge.Instance.ListDevices();
     public void MobileCompanionRevoke(string deviceId) => MobileCompanionBridge.Instance.Revoke(deviceId);
     public void MobileCompanionSetActiveAccount(string accountId) => MobileCompanionBridge.Instance.SetActiveAccount(accountId);
-    public void MobileCompanionSetVerifiedFriends(string accountId, string[] friendIds) =>
-        MobileCompanionBridge.Instance.SetVerifiedFriends(accountId, friendIds);
+    public void MobileCompanionSetVerifiedFriends(string accountId, string friendIdsJson) =>
+        MobileCompanionBridge.Instance.SetVerifiedFriends(accountId, friendIdsJson);
     public Task MobileCompanionClearActiveAccount() => MobileCompanionBridge.Instance.ClearActiveAccount();
 }
