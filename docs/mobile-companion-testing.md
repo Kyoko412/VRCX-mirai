@@ -53,6 +53,9 @@ from the phone. During this test, two runtime defects were found and fixed:
 network interfaces without IPv4 made address enumeration throw, and CefSharp
 converted a JavaScript friend ID array to `List<object>` rather than `string[]`.
 The desktop app then logged in successfully without the friend-sync error.
+After the port check, phone access was disabled and the normal development
+desktop build was restored; it launched and loaded the frontend without the
+address-enumeration crash.
 
 | Check                                                                     | Status                                   |
 | ------------------------------------------------------------------------- | ---------------------------------------- |
