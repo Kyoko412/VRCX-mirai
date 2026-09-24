@@ -37,7 +37,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
       - name: Install Android 37 platform
-        run: sdkmanager 'platforms;android-37' 'build-tools;36.0.0'
+        run: sdkmanager 'platforms;android-37.0' 'build-tools;36.0.0'
       - name: Run JVM tests and build debug APK
         working-directory: android
         run: |
@@ -71,7 +71,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
       - name: Install Android 37 platform
-        run: sdkmanager 'platforms;android-37' 'build-tools;36.0.0'
+        run: sdkmanager 'platforms;android-37.0' 'build-tools;36.0.0'
       - name: Restore owner keystore
         shell: bash
         run: |
