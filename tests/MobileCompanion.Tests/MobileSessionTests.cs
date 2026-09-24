@@ -58,4 +58,18 @@ public sealed class MobileSessionTests
         Assert.DoesNotContain("usr_friend", session.Capture()!.FriendIds);
         Assert.Contains("usr_friend", before.FriendIds);
     }
+
+    [Fact]
+    public void LateFriendSyncCannotReplaceAnotherAccountsAllowlist()
+    {
+        var session = new MobileSession();
+        session.Open("usr_a", ["usr_friend_a"]);
+        session.Open("usr_b", ["usr_friend_b"]);
+        var before = session.Capture()!;
+
+        Assert.False(session.TryUpdateFriendsForAccount("usr_a", ["usr_friend_a"]));
+        Assert.Equal(before, session.Capture());
+        Assert.True(session.TryUpdateFriendsForAccount("usr_b", ["usr_friend_b2"]));
+        Assert.Contains("usr_friend_b2", session.Capture()!.FriendIds);
+    }
 }

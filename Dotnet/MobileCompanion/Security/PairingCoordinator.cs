@@ -127,6 +127,16 @@ public sealed class PairingCoordinator(string spkiSha256, DeviceRegistry devices
 
     public void Revoke(string deviceId) => devices.Revoke(deviceId);
 
+    public void ResetPending()
+    {
+        lock (_gate)
+        {
+            _offer = null;
+            _requests.Clear();
+            _badAttempts.Clear();
+        }
+    }
+
     private RequestState ValidRequest(string id)
     {
         if (!_requests.TryGetValue(id, out var request) || _clock.GetUtcNow() >= request.ExpiresAt)

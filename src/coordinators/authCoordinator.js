@@ -19,6 +19,9 @@ import webApiService from '../services/webapi';
  * Runs the shared logout side effects (including goodbye notification).
  */
 export async function runLogoutFlow() {
+    if (typeof AppApi !== 'undefined' && typeof AppApi.MobileCompanionClearActiveAccount === 'function') {
+        await AppApi.MobileCompanionClearActiveAccount();
+    }
     const authStore = useAuthStore();
     const userStore = useUserStore();
     const notificationStore = useNotificationStore();

@@ -38,6 +38,21 @@ export const useFriendStore = defineStore('Friend', () => {
     const userStore = useUserStore();
     const groupStore = useGroupStore();
     const locationStore = useLocationStore();
+
+    async function setMobileVerifiedFriends(accountId, userIds) {
+        if (typeof AppApi !== 'undefined' && typeof AppApi.MobileCompanionSetVerifiedFriends === 'function') {
+            await AppApi.MobileCompanionSetVerifiedFriends(accountId, userIds);
+        }
+    }
+
+    function publishMobileVerifiedFriends() {
+        if (!watchState.isLoggedIn || !watchState.isFriendsLoaded) return;
+        void setMobileVerifiedFriends(userStore.currentUser.id, [...friends.keys()]).catch(async () => {
+            if (typeof AppApi !== 'undefined' && typeof AppApi.MobileCompanionClearActiveAccount === 'function') {
+                await AppApi.MobileCompanionClearActiveAccount();
+            }
+        });
+    }
     const dashboardStore = useDashboardStore();
 
     const router = useRouter();
@@ -450,6 +465,7 @@ export const useFriendStore = defineStore('Friend', () => {
             return;
         }
         friends.delete(id);
+        publishMobileVerifiedFriends();
         removeSortedFriend(id);
     }
 
@@ -540,6 +556,7 @@ export const useFriendStore = defineStore('Friend', () => {
             ctx.name = ref.name;
         }
         friends.set(id, ctx);
+        publishMobileVerifiedFriends();
         watchState.isLoggedIn = true;
         // Startup fill flow:
         //
@@ -907,6 +924,10 @@ export const useFriendStore = defineStore('Friend', () => {
         });
         database.setFriendLogCurrentArray(sqlValues);
         await configRepository.setBool(`friendLogInit_${currentUser.id}`, true);
+        await setMobileVerifiedFriends(
+            currentUser.id,
+            friends.map((friend) => friend.id)
+        );
         watchState.isFriendsLoaded = true;
     }
 
@@ -941,7 +962,11 @@ export const useFriendStore = defineStore('Friend', () => {
         }
         refreshFriendsStatus(currentUser);
 
-        await refreshFriends();
+        const verifiedFriends = await refreshFriends();
+        await setMobileVerifiedFriends(
+            currentUser.id,
+            verifiedFriends.map((friend) => friend.id)
+        );
         watchState.isFriendsLoaded = true;
 
         // check for friend/name/rank change AFTER isFriendsLoaded is set

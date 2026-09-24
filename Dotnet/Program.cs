@@ -237,6 +237,7 @@ namespace VRCX
 
             IPCServer.Instance.Init();
             SQLite.Instance.Init();
+            MobileCompanionBridge.Instance.Initialize();
             AppApiInstance = new AppApiCef();
 
             ProcessMonitor.Instance.Init();
@@ -257,6 +258,7 @@ namespace VRCX
             LogWatcher.Instance.Exit();
             WebApi.Instance.Exit();
             Discord.Instance.Exit();
+            MobileCompanionBridge.Instance.Exit();
             VRCXStorage.Instance.Save();
             SQLite.Instance.Exit();
             ProcessMonitor.Instance.Exit();

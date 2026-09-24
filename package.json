@@ -90,6 +90,7 @@
         "oxlint-plugin-eslint": "^1.78.0",
         "oxlint-tsgolint": "^7.0.2001",
         "pinia": "^4.0.2",
+        "qrcode": "^1.5.4",
         "reka-ui": "^2.10.1",
         "remixicon": "^4.9.1",
         "sigma": "^3.0.3",

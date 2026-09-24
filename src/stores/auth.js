@@ -834,6 +834,9 @@ export const useAuthStore = defineStore('Auth', () => {
         await database.initUserTables(userStore.currentUser.id);
         advancedSettingsStore.runAvatarAutoCleanup(userStore.currentUser.id);
         watchState.isLoggedIn = true;
+        if (typeof AppApi !== 'undefined' && typeof AppApi.MobileCompanionSetActiveAccount === 'function') {
+            await AppApi.MobileCompanionSetActiveAccount(userStore.currentUser.id);
+        }
         AppApi.CheckGameRunning(); // restore state from hot-reload
 
         activityStore.startFullCacheBuild(userStore.currentUser.id);

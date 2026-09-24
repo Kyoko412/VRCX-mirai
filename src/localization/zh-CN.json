@@ -1119,6 +1119,26 @@
                     "wrist_feed_filters": "手腕动态筛选器"
                 }
             },
+            "mobile_companion": {
+                "header": "手机查看",
+                "description": "在同一 Wi-Fi 下，用安卓手机查看这台电脑保存的 VRCX 记录。",
+                "private_network": "仅在 Windows 专用网络中启用；如弹出防火墙提示，只允许 VRCX 访问专用网络。",
+                "enable": "开启手机查看",
+                "login_required": "请先在 VRCX 中登录 VRChat。",
+                "address": "局域网地址",
+                "create_qr": "生成配对二维码",
+                "refresh": "刷新请求",
+                "qr_alt": "安卓手机一次性配对二维码",
+                "qr_expires": "二维码两分钟后失效且只能使用一次。扫码后请在下方确认手机。",
+                "pending": "待确认手机",
+                "devices": "已配对手机",
+                "none": "暂无",
+                "approve": "允许",
+                "reject": "拒绝",
+                "revoke": "撤销",
+                "revoked": "已撤销",
+                "error": "无法更新手机查看状态。"
+            },
             "discord_presence": {
                 "discord_presence": {
                     "header": "Discord 状态面板",

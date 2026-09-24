@@ -41,6 +41,19 @@ public sealed class MobileSession
         }
     }
 
+    public bool TryUpdateFriendsForAccount(string accountId, IReadOnlyCollection<string> friendIds)
+    {
+        ArgumentNullException.ThrowIfNull(friendIds);
+        var set = CopyValidFriends(friendIds);
+        lock (_gate)
+        {
+            if (_current is null || _current.AccountId != accountId)
+                return false;
+            _current = _current with { FriendIds = set, Generation = ++_generation };
+            return true;
+        }
+    }
+
     public void Close()
     {
         lock (_gate)

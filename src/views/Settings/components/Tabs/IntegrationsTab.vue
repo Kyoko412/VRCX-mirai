@@ -1,5 +1,6 @@
 <template>
     <div class="flex flex-col gap-10 py-2">
+        <MobileCompanionSettings />
         <!-- Discord Rich Presence -->
         <SettingsGroup :title="t('view.settings.discord_presence.discord_presence.header')">
             <template #description>
@@ -183,6 +184,7 @@
     import YouTubeApiDialog from '../../dialogs/YouTubeApiDialog.vue';
     import SettingsGroup from '../SettingsGroup.vue';
     import SettingsItem from '../SettingsItem.vue';
+    import MobileCompanionSettings from '../MobileCompanionSettings.vue';
 
     const { t } = useI18n();
 

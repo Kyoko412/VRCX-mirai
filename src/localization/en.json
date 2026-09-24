@@ -1124,6 +1124,26 @@
                     "wrist_feed_filters": "Wrist Feed Filters"
                 }
             },
+            "mobile_companion": {
+                "header": "Phone access",
+                "description": "View this computer's VRCX records on an Android phone connected to the same Wi-Fi.",
+                "private_network": "Only enable on a Windows Private network. Allow VRCX through the firewall for Private networks if prompted.",
+                "enable": "Enable phone access",
+                "login_required": "Log in to VRChat in VRCX first.",
+                "address": "Local address",
+                "create_qr": "Create pairing QR code",
+                "refresh": "Refresh requests",
+                "qr_alt": "One-time QR code for Android pairing",
+                "qr_expires": "This QR code expires in two minutes and can be used once. Confirm the phone below after scanning.",
+                "pending": "Pending phones",
+                "devices": "Paired phones",
+                "none": "None",
+                "approve": "Approve",
+                "reject": "Reject",
+                "revoke": "Revoke",
+                "revoked": "Revoked",
+                "error": "Phone access could not be updated."
+            },
             "discord_presence": {
                 "discord_presence": {
                     "header": "Discord Presence",
