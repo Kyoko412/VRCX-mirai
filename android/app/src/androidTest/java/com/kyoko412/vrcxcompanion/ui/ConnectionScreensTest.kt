@@ -27,4 +27,12 @@ class ConnectionScreensTest {
         composeRule.onNodeWithText(ConnectionState.Offline.label).assertExists()
         composeRule.onNodeWithText("World").assertDoesNotExist()
     }
+
+    @Test fun pairedHomeOffersSameKeyAddressRescan() {
+        composeRule.setContent {
+            HomeScreen("PC", "usr_me", null, "电脑离线", onFriends = {}, onGameLog = {},
+                onRefresh = {}, onUnpair = {}, onRescan = {})
+        }
+        composeRule.onNodeWithText("电脑地址变化？重新扫码").assertExists()
+    }
 }

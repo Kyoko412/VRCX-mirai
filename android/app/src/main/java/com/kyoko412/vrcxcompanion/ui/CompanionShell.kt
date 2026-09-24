@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kyoko412.vrcxcompanion.data.CompanionRepository
+import com.kyoko412.vrcxcompanion.network.ApiFailure
 
 private const val LOCAL_NETWORK_PERMISSION = "android.permission.ACCESS_LOCAL_NETWORK"
 
@@ -36,6 +37,7 @@ fun CompanionShell(repository: CompanionRepository, onUnpair: (Boolean) -> Unit)
     val connection by connectionModel.state.collectAsState()
     var page by remember(repository) { mutableStateOf("home") }
     var friendName by remember(repository) { mutableStateOf("") }
+    var rescanError by remember(repository) { mutableStateOf("") }
 
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) connectionModel.refreshStatus()
@@ -82,6 +84,20 @@ fun CompanionShell(repository: CompanionRepository, onUnpair: (Boolean) -> Unit)
     }
 
     when (page) {
+        "rescan" -> PairingScreen(onOffer = { qr ->
+            rescanError = ""
+            try {
+                repository.updateAddress(qr.address, qr.port, qr.spkiSha256)
+                friendsModel.clear()
+                historyModel.clear()
+                page = "home"
+                connectionModel.refreshStatus()
+            } catch (_: ApiFailure.TlsMismatch) {
+                rescanError = "证书指纹与原电脑不一致，地址未更新。请核对电脑。"
+            } catch (_: IllegalArgumentException) {
+                rescanError = "新地址无效，请重新扫描电脑二维码。"
+            }
+        }, rescanMode = true, onBack = { page = "home" }, externalError = rescanError)
         "friends" -> FriendsScreen(friends, friendsModel::search,
             onOpen = { id, name -> friendName = name; historyModel.open(id); page = "detail" },
             onLoadMore = friendsModel::loadMore, onRefresh = { if (readyToRead()) friendsModel.refresh() },
@@ -99,6 +115,7 @@ fun CompanionShell(repository: CompanionRepository, onUnpair: (Boolean) -> Unit)
             onFriends = { if (readyToRead()) { friendsModel.refresh(); page = "friends" } },
             onGameLog = { if (readyToRead()) { connectionModel.openGameLog(); page = "game" } },
             onRefresh = { if (readyToRead()) connectionModel.refreshStatus() },
+            onRescan = { rescanError = ""; page = "rescan" },
             onUnpair = { repository.unpair(); onUnpair(false) })
     }
 }

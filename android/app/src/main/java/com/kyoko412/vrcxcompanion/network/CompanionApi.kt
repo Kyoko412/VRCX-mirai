@@ -68,7 +68,12 @@ class CompanionApi(private val endpoint: PinnedEndpoint, private val client: OkH
                     200 -> response.body.string()
                     400 -> throw ApiFailure.InvalidRequest
                     401 -> throw ApiFailure.Unauthorized
-                    403 -> throw ApiFailure.Revoked
+                    403 -> {
+                        val code = runCatching { companionJson.decodeFromString<ApiError>(response.body.string()).code }
+                            .getOrNull()
+                        if (code == "account_changed") throw ApiFailure.AccountChanged
+                        throw ApiFailure.Revoked
+                    }
                     404 -> throw ApiFailure.NotFound
                     409 -> throw ApiFailure.SessionChanged
                     503 -> throw ApiFailure.Unavailable

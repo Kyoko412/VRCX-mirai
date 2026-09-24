@@ -32,10 +32,14 @@ public sealed class HttpServerTests
         await using var fixture = await Fixture.CreateAsync();
         var wrong = fixture.Devices.Issue("Other account", "usr_other");
         fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", wrong.Token);
-        Assert.Equal(HttpStatusCode.Forbidden, (await fixture.Client.GetAsync("/v1/friends")).StatusCode);
+        var wrongAccount = await fixture.Client.GetAsync("/v1/friends");
+        Assert.Equal(HttpStatusCode.Forbidden, wrongAccount.StatusCode);
+        Assert.Contains("account_changed", await wrongAccount.Content.ReadAsStringAsync());
         var current = fixture.Authorize();
         fixture.Devices.Revoke(current.DeviceId);
-        Assert.Equal(HttpStatusCode.Forbidden, (await fixture.Client.GetAsync("/v1/friends")).StatusCode);
+        var revoked = await fixture.Client.GetAsync("/v1/friends");
+        Assert.Equal(HttpStatusCode.Forbidden, revoked.StatusCode);
+        Assert.Contains("forbidden", await revoked.Content.ReadAsStringAsync());
     }
 
     [Fact]

@@ -30,6 +30,9 @@ class CompanionApiDataTest {
                 server.enqueue(MockResponse.Builder().code(code).body("""{"code":"error"}""").build())
                 assertThrows(expected) { runBlocking { api.status("token") } }
             }
+            server.enqueue(MockResponse.Builder().code(403)
+                .body("""{"code":"account_changed","message":"Desktop account changed"}""").build())
+            assertThrows(ApiFailure.AccountChanged::class.java) { runBlocking { api.status("token") } }
             server.enqueue(MockResponse.Builder().body("""{"apiVersion":2,"accountId":"usr_a","computerName":"PC","syncState":"ready"}""").build())
             assertThrows(ApiFailure.IncompatibleVersion::class.java) { runBlocking { api.status("token") } }
             Unit

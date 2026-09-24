@@ -20,6 +20,7 @@ fun HomeScreen(
     onFriends: () -> Unit,
     onGameLog: () -> Unit,
     onRefresh: () -> Unit,
+    onRescan: () -> Unit,
     onUnpair: () -> Unit
 ) {
     Column(Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -31,6 +32,7 @@ fun HomeScreen(
         Button(onClick = onRefresh) { Text("刷新连接") }
         Button(onClick = onFriends) { Text("查看好友") }
         Button(onClick = onGameLog) { Text("我的游戏日志") }
+        Button(onClick = onRescan) { Text("电脑地址变化？重新扫码") }
         Button(onClick = onUnpair) { Text("解除配对") }
     }
 }

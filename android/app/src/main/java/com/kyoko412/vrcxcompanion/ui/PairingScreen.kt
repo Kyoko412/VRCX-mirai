@@ -33,7 +33,12 @@ import com.kyoko412.vrcxcompanion.pairing.QrScanner
 private const val LOCAL_NETWORK_PERMISSION = "android.permission.ACCESS_LOCAL_NETWORK"
 
 @Composable
-fun PairingScreen(onOffer: (PairingQr) -> Unit) {
+fun PairingScreen(
+    onOffer: (PairingQr) -> Unit,
+    rescanMode: Boolean = false,
+    onBack: (() -> Unit)? = null,
+    externalError: String = ""
+) {
     val context = LocalContext.current
     var raw by remember { mutableStateOf("") }
     var scanning by remember { mutableStateOf(false) }
@@ -74,8 +79,12 @@ fun PairingScreen(onOffer: (PairingQr) -> Unit) {
     }
 
     Column(Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("连接电脑 VRCX", style = MaterialTheme.typography.headlineSmall)
-        Text("电脑和手机需连接同一 Wi-Fi。先在电脑 VRCX 设置中启用手机访问并显示二维码。")
+        if (onBack != null) Button(onClick = onBack) { Text("返回") }
+        Text(if (rescanMode) "更新电脑地址" else "连接电脑 VRCX",
+            style = MaterialTheme.typography.headlineSmall)
+        Text(if (rescanMode)
+            "电脑 IP 变化后重新扫描新二维码。只有与原电脑证书指纹相同才会更新地址，已有配对凭据会保留。"
+            else "电脑和手机需连接同一 Wi-Fi。先在电脑 VRCX 设置中启用手机访问并显示二维码。")
         Button(onClick = {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                 scanning = true
@@ -99,5 +108,6 @@ fun PairingScreen(onOffer: (PairingQr) -> Unit) {
             Button(onClick = { networkPermission.launch(LOCAL_NETWORK_PERMISSION) }) { Text("重试局域网权限") }
         }
         if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
+        if (externalError.isNotEmpty()) Text(externalError, color = MaterialTheme.colorScheme.error)
     }
 }

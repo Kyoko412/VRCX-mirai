@@ -124,14 +124,14 @@ Only qualified encounters appear in `items`; uncertainty remains visible in `unk
 
 Errors have `{"code":"invalid_cursor","message":"Invalid cursor"}`. Codes do not reveal database details or other accounts.
 
-| HTTP | Meaning                                            | Example code                        |
-| ---- | -------------------------------------------------- | ----------------------------------- |
-| 400  | Malformed or out-of-range request                  | `invalid_request`, `invalid_cursor` |
-| 401  | Missing or invalid bearer token                    | `unauthorized`                      |
-| 403  | Revoked device, wrong account, or rejected pairing | `forbidden`, `pairing_rejected`     |
-| 404  | Non-friend or unavailable record                   | `not_found`                         |
-| 409  | Account/session changed during the request         | `session_changed`                   |
-| 429  | Pairing requests exceeded the local rate limit     | `rate_limited`                      |
-| 503  | Service or database unavailable                    | `unavailable`                       |
+| HTTP | Meaning                                            | Example code                                       |
+| ---- | -------------------------------------------------- | -------------------------------------------------- |
+| 400  | Malformed or out-of-range request                  | `invalid_request`, `invalid_cursor`                |
+| 401  | Missing or invalid bearer token                    | `unauthorized`                                     |
+| 403  | Revoked device, wrong account, or rejected pairing | `forbidden`, `account_changed`, `pairing_rejected` |
+| 404  | Non-friend or unavailable record                   | `not_found`                                        |
+| 409  | Account/session changed during the request         | `session_changed`                                  |
+| 429  | Pairing requests exceeded the local rate limit     | `rate_limited`                                     |
+| 503  | Service or database unavailable                    | `unavailable`                                      |
 
 Clients understand major version 1 only; future incompatible shapes use `/v2`. No route exposes the underlying SQLite file or a generic query facility.

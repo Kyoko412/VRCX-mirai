@@ -96,6 +96,42 @@ class CompanionRepositoryTest {
         }
     }
 
+    @Test fun desktopWrongAccountResponseKeepsCredentialForReturnToOriginalAccount() = runBlocking {
+        val certificate = HeldCertificate.Builder().addSubjectAlternativeName(PinnedClientFactory.HOST).build()
+        val tls = HandshakeCertificates.Builder().heldCertificate(certificate).build()
+        MockWebServer().use { server ->
+            server.useHttps(tls.sslSocketFactory())
+            server.start()
+            val endpoint = PinnedEndpoint("192.168.1.10", server.port, CertificatePinner.pin(certificate.certificate))
+            val store = PairingStore(MemoryPreferences(), TestCipher())
+            store.save(SavedPairing(endpoint.address, endpoint.port, endpoint.spkiSha256, "dev", "token"))
+            val api = CompanionApi(endpoint, PinnedClientFactory.createForTest(endpoint, InetAddress.getLoopbackAddress()))
+            val repo = CompanionRepository(store, api)
+            server.enqueue(MockResponse.Builder().code(403)
+                .body("""{"code":"account_changed","message":"Desktop account changed"}""").build())
+            assertThrows(ApiFailure.AccountChanged::class.java) { runBlocking { repo.status() } }
+            assertEquals("token", store.load()?.token)
+        }
+    }
+
+    @Test fun rescanUpdatesOnlyMatchingKeyAndRetainsDeviceToken() {
+        val certificate = HeldCertificate.Builder().addSubjectAlternativeName(PinnedClientFactory.HOST).build()
+        val otherCertificate = HeldCertificate.Builder().addSubjectAlternativeName(PinnedClientFactory.HOST).build()
+        val pin = CertificatePinner.pin(certificate.certificate)
+        val endpoint = PinnedEndpoint("192.168.1.10", 34682, pin)
+        val store = PairingStore(MemoryPreferences(), TestCipher())
+        store.save(SavedPairing(endpoint.address, endpoint.port, pin, "dev", "token"))
+        val api = CompanionApi(endpoint, PinnedClientFactory.createForTest(endpoint, InetAddress.getLoopbackAddress()))
+        val repo = CompanionRepository(store, api)
+        assertThrows(ApiFailure.TlsMismatch::class.java) {
+            repo.updateAddress("192.168.1.11", 34682, CertificatePinner.pin(otherCertificate.certificate))
+        }
+        assertEquals("192.168.1.10", store.load()?.address)
+        repo.updateAddress("192.168.1.11", 34682, pin)
+        assertEquals("192.168.1.11", store.load()?.address)
+        assertEquals("token", store.load()?.token)
+    }
+
     @Test fun twoBioPagesWithTiedTimestampsRemainComplete() = runBlocking {
         val certificate = HeldCertificate.Builder().addSubjectAlternativeName(PinnedClientFactory.HOST).build()
         val tls = HandshakeCertificates.Builder().heldCertificate(certificate).build()

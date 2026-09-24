@@ -79,15 +79,16 @@ public static class CompanionRoutes
         if (auth == DeviceAuthorization.Unauthorized)
             return Error(401, "unauthorized", "Device authorization required");
         if (auth != DeviceAuthorization.Authorized)
-            return Error(403, "forbidden", "Device access denied");
+            return Denied(auth);
         try
         {
             var result = read(snapshot);
             var payload = JsonSerializer.SerializeToUtf8Bytes(result, result.GetType(), CompanionJson.Options);
             if (!session.IsCurrent(snapshot.Generation))
                 return Error(409, "session_changed", "Account session changed");
-            if (devices.Authorize(token, snapshot.AccountId) != DeviceAuthorization.Authorized)
-                return Error(403, "forbidden", "Device access denied");
+            var currentAuth = devices.Authorize(token, snapshot.AccountId);
+            if (currentAuth != DeviceAuthorization.Authorized)
+                return Denied(currentAuth);
             return Results.Bytes(payload, "application/json");
         }
         catch (Exception ex)
@@ -97,6 +98,13 @@ public static class CompanionRoutes
             return MapError(ex);
         }
     }
+
+    private static IResult Denied(DeviceAuthorization authorization) => authorization switch
+    {
+        DeviceAuthorization.WrongAccount => Error(403, "account_changed", "Desktop account changed"),
+        DeviceAuthorization.Unauthorized => Error(401, "unauthorized", "Device authorization required"),
+        _ => Error(403, "forbidden", "Device access denied")
+    };
 
     private static int Limit(HttpContext context)
     {
