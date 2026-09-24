@@ -26,9 +26,9 @@ must be on the same Wi-Fi, without client isolation.
 | Frontend companion settings, logout, game ownership                           | 8 passed                                                                  |
 | CEF x64 self-contained Release build and direct executable launch             | Passed                                                                    |
 | Full format check                                                             | Passed after formatter alignment                                          |
-| Android JVM tests                                                             | 27 passed                                                                 |
+| Android JVM tests                                                             | 29 passed, including blank camera frames and rotated QR codes             |
 | Android debug APK and instrumentation APK compilation                         | Passed                                                                    |
-| Android CI debug APK artifact                                                 | [Passed](https://github.com/Kyoko412/VRCX-mirai/actions/runs/35976995378) |
+| Android CI debug APK artifact                                                 | [Passed](https://github.com/Kyoko412/VRCX-mirai/actions/runs/35983997719) |
 | Release signing with a disposable test key                                    | Built and verified (v2); test key and APK deleted                         |
 | Android instrumentation execution on Samsung SM-S9280, Android 16 (API 36)    | 5 passed on 2026-09-24                                                    |
 | Full frontend `npm test` suite                                                | Existing unrelated cases fail; see note below                             |
@@ -50,24 +50,28 @@ recorded here rather than counted as a companion regression.
 The Samsung SM-S9280 and Windows PC are on the same Private Wi-Fi subnet
 (`172.24.80.0/20`). The debug APK was installed and opened on the phone. The
 desktop build was launched, and TCP 34682 is reachable
-from the phone. During this test, two runtime defects were found and fixed:
+from the phone. During this test, three runtime defects were found and fixed:
 network interfaces without IPv4 made address enumeration throw, and CefSharp
 converted a JavaScript friend ID array to `List<object>` rather than `string[]`.
+The first phone scan also exposed a QR decoder crash: ZXing's planar YUV source
+does not support `rotateCounterClockwise()`. The decoder now rotates the pixel
+buffer and handles camera analysis errors without terminating the app.
 The desktop app then logged in successfully without the friend-sync error.
 After the port check, phone access was disabled and the self-contained desktop
 build was restored; it launched directly and loaded the frontend without the
 address-enumeration crash or a separate ASP.NET Core runtime installation.
 
-| Check                                                                     | Status                                   |
-| ------------------------------------------------------------------------- | ---------------------------------------- |
-| Phone to PC TCP 34682 on the Private Wi-Fi                                | Passed                                   |
-| Scan QR, request pairing, approve on PC, read friends and three histories | Not run yet                              |
-| Read account-owned game log                                               | Not run yet                              |
-| Log out or switch account during a read                                   | Not run yet                              |
-| Revoke phone token and disable service                                    | Not run yet                              |
-| Change PC LAN IP; reject a different TLS key at the same IP               | Not run yet                              |
-| Deny Android local-network permission and retry                           | Not applicable on Android 16; test on 17 |
-| Confirm Windows Public profile has no inbound allow rule                  | Failed: Windows added broad app rules    |
+| Check                                                                     | Status                                                          |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Phone to PC TCP 34682 on the Private Wi-Fi                                | Passed                                                          |
+| Open the scanner on Samsung SM-S9280                                      | Crash reproduced, fix installed; no new crash in ADB smoke test |
+| Scan QR, request pairing, approve on PC, read friends and three histories | Not run yet                                                     |
+| Read account-owned game log                                               | Not run yet                                                     |
+| Log out or switch account during a read                                   | Not run yet                                                     |
+| Revoke phone token and disable service                                    | Not run yet                                                     |
+| Change PC LAN IP; reject a different TLS key at the same IP               | Not run yet                                                     |
+| Deny Android local-network permission and retry                           | Not applicable on Android 16; test on 17                        |
+| Confirm Windows Public profile has no inbound allow rule                  | Failed: Windows added broad app rules                           |
 
 The Windows firewall automatically created inbound rules for this worktree's
 `VRCX.exe` covering both Private and Public profiles, even though the service
