@@ -15,7 +15,14 @@ The Windows CEF application serves this API over HTTPS on an explicitly selected
 The desktop shows a two-minute, one-use QR JSON object:
 
 ```json
-{"v":1,"address":"192.168.1.10","port":34682,"host":"vrcx-companion.invalid","spkiSha256":"sha256/BASE64_PIN","secret":"BASE64URL_SECRET"}
+{
+  "v": 1,
+  "address": "192.168.1.10",
+  "port": 34682,
+  "host": "vrcx-companion.invalid",
+  "spkiSha256": "sha256/BASE64_PIN",
+  "secret": "BASE64URL_SECRET"
+}
 ```
 
 The phone checks a private IPv4 address, valid port, fixed host, well-formed pin, and QR size before connecting. It verifies TLS hostname and SPKI pin for the **pairing requests too**.
@@ -27,13 +34,13 @@ The phone checks a private IPv4 address, valid port, fixed host, well-formed pin
 `GET /v1/status`:
 
 ```json
-{"apiVersion":1,"accountId":"usr_me","computerName":"Desktop","syncState":"ready"}
+{ "apiVersion": 1, "accountId": "usr_me", "computerName": "Desktop", "syncState": "ready" }
 ```
 
 `GET /v1/friends?search=&limit=20&cursor=` lists verified current friends that also exist in the local friend cache:
 
 ```json
-{"accountId":"usr_me","items":[{"id":"usr_a","displayName":"A"}],"nextCursor":null}
+{ "accountId": "usr_me", "items": [{ "id": "usr_a", "displayName": "A" }], "nextCursor": null }
 ```
 
 The following three friend routes require an ID in the current verified friend set. A former or unknown friend yields `404` even if old database rows remain.
@@ -41,7 +48,23 @@ The following three friend routes require an ID in the current verified friend s
 `GET /v1/friends/{id}/world-visits?limit=20&cursor=`:
 
 ```json
-{"accountId":"usr_me","items":[{"eventKey":"gps:42","worldId":"wrld_a","worldName":"World A","location":"wrld_a:123","enteredAt":"2026-09-24T02:00:00Z","exitedAt":null,"durationMs":null,"observedAt":"2026-09-24T02:00:00Z","visitCount":2}],"nextCursor":null}
+{
+  "accountId": "usr_me",
+  "items": [
+    {
+      "eventKey": "gps:42",
+      "worldId": "wrld_a",
+      "worldName": "World A",
+      "location": "wrld_a:123",
+      "enteredAt": "2026-09-24T02:00:00Z",
+      "exitedAt": null,
+      "durationMs": null,
+      "observedAt": "2026-09-24T02:00:00Z",
+      "visitCount": 2
+    }
+  ],
+  "nextCursor": null
+}
 ```
 
 `visitCount` is computed across all locally observed visits to that world before pagination. An unproven entry or exit is `null`; duplicate source rows do not imply multiple visits.
@@ -49,7 +72,21 @@ The following three friend routes require an ID in the current verified friend s
 `GET /v1/friends/{id}/encounters?limit=20&cursor=`:
 
 ```json
-{"accountId":"usr_me","qualifiedCount":2,"unknownCount":1,"items":[{"visitKey":"visit:42","worldId":"wrld_a","worldName":"World A","location":"wrld_a:123","observedAt":"2026-09-24T02:00:00Z"}],"nextCursor":null}
+{
+  "accountId": "usr_me",
+  "qualifiedCount": 2,
+  "unknownCount": 1,
+  "items": [
+    {
+      "visitKey": "visit:42",
+      "worldId": "wrld_a",
+      "worldName": "World A",
+      "location": "wrld_a:123",
+      "observedAt": "2026-09-24T02:00:00Z"
+    }
+  ],
+  "nextCursor": null
+}
 ```
 
 Only qualified encounters appear in `items`; uncertainty remains visible in `unknownCount` and is never counted as a qualified meeting.
@@ -57,27 +94,44 @@ Only qualified encounters appear in `items`; uncertainty remains visible in `unk
 `GET /v1/friends/{id}/bio-history?limit=20&cursor=`:
 
 ```json
-{"accountId":"usr_me","items":[{"id":42,"previousBio":"Old bio","bio":"New bio","observedAt":"2026-09-24T02:00:00Z"}],"nextCursor":null}
+{
+  "accountId": "usr_me",
+  "items": [{ "id": 42, "previousBio": "Old bio", "bio": "New bio", "observedAt": "2026-09-24T02:00:00Z" }],
+  "nextCursor": null
+}
 ```
 
 `GET /v1/me/game-log?limit=20&cursor=` returns only newly owner-tagged location sessions for the active account. Legacy global `gamelog_*` rows without proven ownership are omitted:
 
 ```json
-{"accountId":"usr_me","items":[{"id":42,"createdAt":"2026-09-24T02:00:00Z","location":"wrld_a:123","worldId":"wrld_a","worldName":"World A","durationMs":600000}],"nextCursor":null}
+{
+  "accountId": "usr_me",
+  "items": [
+    {
+      "id": 42,
+      "createdAt": "2026-09-24T02:00:00Z",
+      "location": "wrld_a:123",
+      "worldId": "wrld_a",
+      "worldName": "World A",
+      "durationMs": 600000
+    }
+  ],
+  "nextCursor": null
+}
 ```
 
 ## Errors and compatibility
 
 Errors have `{"code":"invalid_cursor","message":"Invalid cursor"}`. Codes do not reveal database details or other accounts.
 
-| HTTP | Meaning | Example code |
-| --- | --- | --- |
-| 400 | Malformed or out-of-range request | `invalid_request`, `invalid_cursor` |
-| 401 | Missing or invalid bearer token | `unauthorized` |
-| 403 | Revoked device, wrong account, or rejected pairing | `forbidden`, `pairing_rejected` |
-| 404 | Non-friend or unavailable record | `not_found` |
-| 409 | Account/session changed during the request | `session_changed` |
-| 429 | Pairing requests exceeded the local rate limit | `rate_limited` |
-| 503 | Service or database unavailable | `unavailable` |
+| HTTP | Meaning                                            | Example code                        |
+| ---- | -------------------------------------------------- | ----------------------------------- |
+| 400  | Malformed or out-of-range request                  | `invalid_request`, `invalid_cursor` |
+| 401  | Missing or invalid bearer token                    | `unauthorized`                      |
+| 403  | Revoked device, wrong account, or rejected pairing | `forbidden`, `pairing_rejected`     |
+| 404  | Non-friend or unavailable record                   | `not_found`                         |
+| 409  | Account/session changed during the request         | `session_changed`                   |
+| 429  | Pairing requests exceeded the local rate limit     | `rate_limited`                      |
+| 503  | Service or database unavailable                    | `unavailable`                       |
 
 Clients understand major version 1 only; future incompatible shapes use `/v2`. No route exposes the underlying SQLite file or a generic query facility.

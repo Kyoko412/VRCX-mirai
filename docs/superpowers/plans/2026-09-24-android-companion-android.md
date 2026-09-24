@@ -30,14 +30,14 @@
 
 ## File map and public seams
 
-| Unit | Responsibility |
-| --- | --- |
-| `android/app/src/main/java/com/kyoko412/vrcxcompanion/pairing/` | QR validation, camera scanner, Keystore token storage |
-| `android/app/src/main/java/com/kyoko412/vrcxcompanion/network/` | Pinned TLS, address mapping, API v1 parsing, errors |
-| `android/app/src/main/java/com/kyoko412/vrcxcompanion/data/` | Repository methods matching the desktop contract |
-| `android/app/src/main/java/com/kyoko412/vrcxcompanion/ui/` | Compose screens and ViewModels; records remain in memory |
-| `android/app/src/test/` | Pure parser, client and ViewModel tests |
-| `android/app/src/androidTest/` | Compose navigation, permission and screen behavior tests |
+| Unit                                                            | Responsibility                                           |
+| --------------------------------------------------------------- | -------------------------------------------------------- |
+| `android/app/src/main/java/com/kyoko412/vrcxcompanion/pairing/` | QR validation, camera scanner, Keystore token storage    |
+| `android/app/src/main/java/com/kyoko412/vrcxcompanion/network/` | Pinned TLS, address mapping, API v1 parsing, errors      |
+| `android/app/src/main/java/com/kyoko412/vrcxcompanion/data/`    | Repository methods matching the desktop contract         |
+| `android/app/src/main/java/com/kyoko412/vrcxcompanion/ui/`      | Compose screens and ViewModels; records remain in memory |
+| `android/app/src/test/`                                         | Pure parser, client and ViewModel tests                  |
+| `android/app/src/androidTest/`                                  | Compose navigation, permission and screen behavior tests |
 
 `PairingQr.parse(raw): PairingQr` validates the QR. `PinnedClientFactory.create(qrOrSavedPairing): OkHttpClient` maps `vrcx-companion.invalid` to the paired LAN IP and accepts only the pinned key; OkHttp's normal hostname verifier remains enabled. `CompanionApi` implements typed `status/friends/visits/encounters/bio/gameLog` methods. `PairingStore` saves `address`, `port`, `pin`, `deviceId`, and `token`, but no fetched history.
 

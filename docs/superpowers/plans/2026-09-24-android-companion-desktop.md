@@ -31,16 +31,16 @@
 
 ## File map and public seams
 
-| Unit | Responsibility |
-| --- | --- |
-| `Dotnet/MobileCompanion/Contract/` | API v1 DTOs, validation limits, error types; no UI or database globals |
-| `Dotnet/MobileCompanion/Session/` | Immutable account snapshot and generation checks |
-| `Dotnet/MobileCompanion/Data/` | Parameterized, allowlisted read queries and visit reconstruction |
-| `Dotnet/MobileCompanion/Security/` | Certificate persistence, pairing, token hashes and revocation |
-| `Dotnet/MobileCompanion/Server/` | Private-interface Kestrel listener and versioned HTTP routes |
-| `Dotnet/AppApi/Cef/MobileCompanionBridge.cs` | CEF-only adapter for `SQLite.Instance`, account events and settings calls |
-| `src/views/Settings/components/MobileCompanionSettings.vue` | Switch, address, QR, approval and device management |
-| `android/` | Independent client, implemented by the matching Android plan |
+| Unit                                                        | Responsibility                                                            |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `Dotnet/MobileCompanion/Contract/`                          | API v1 DTOs, validation limits, error types; no UI or database globals    |
+| `Dotnet/MobileCompanion/Session/`                           | Immutable account snapshot and generation checks                          |
+| `Dotnet/MobileCompanion/Data/`                              | Parameterized, allowlisted read queries and visit reconstruction          |
+| `Dotnet/MobileCompanion/Security/`                          | Certificate persistence, pairing, token hashes and revocation             |
+| `Dotnet/MobileCompanion/Server/`                            | Private-interface Kestrel listener and versioned HTTP routes              |
+| `Dotnet/AppApi/Cef/MobileCompanionBridge.cs`                | CEF-only adapter for `SQLite.Instance`, account events and settings calls |
+| `src/views/Settings/components/MobileCompanionSettings.vue` | Switch, address, QR, approval and device management                       |
+| `android/`                                                  | Independent client, implemented by the matching Android plan              |
 
 `ICompanionDb.Query(string sql, IDictionary<string, object> args)` is the only database capability given to the library. `MobileSession.Open(accountId, friendIds)`, `UpdateFriends(friendIds)`, `Close()`, `Capture()` and `IsCurrent(generation)` define the account gate. `CompanionRepository` takes `ICompanionDb` and a captured session snapshot; route handlers never accept a table prefix or raw SQL from a request.
 
@@ -60,7 +60,7 @@ Assert.Equal("usr_a", JsonSerializer.Deserialize<Page<FriendDto>>(
 ```
 
 ```json
-{"accountId":"usr_me","items":[{"id":"usr_a","displayName":"A"}],"nextCursor":null}
+{ "accountId": "usr_me", "items": [{ "id": "usr_a", "displayName": "A" }], "nextCursor": null }
 ```
 
 - [ ] **Step 3: Run `dotnet test tests/MobileCompanion.Tests/VRCX.MobileCompanion.Tests.csproj -c Release`; expect FAIL because DTOs are absent.**
