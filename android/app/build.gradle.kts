@@ -4,6 +4,19 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
+val releaseKeyFile = providers.environmentVariable("VRCX_ANDROID_KEYSTORE").orNull
+val releaseStorePassword = providers.environmentVariable("VRCX_ANDROID_KEYSTORE_PASSWORD").orNull
+val releaseKeyAlias = providers.environmentVariable("VRCX_ANDROID_KEY_ALIAS").orNull
+val releaseKeyPassword = providers.environmentVariable("VRCX_ANDROID_KEY_PASSWORD").orNull
+val releaseSigningAvailable = listOf(releaseKeyFile, releaseStorePassword, releaseKeyAlias,
+    releaseKeyPassword).all { !it.isNullOrBlank() }
+if (gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }) {
+    check(releaseSigningAvailable) {
+        "Release build requires VRCX_ANDROID_KEYSTORE, VRCX_ANDROID_KEYSTORE_PASSWORD, " +
+            "VRCX_ANDROID_KEY_ALIAS and VRCX_ANDROID_KEY_PASSWORD"
+    }
+}
+
 android {
     namespace = "com.kyoko412.vrcxcompanion"
     compileSdk = 37
@@ -18,6 +31,19 @@ android {
     }
 
     buildFeatures { compose = true }
+    signingConfigs {
+        if (releaseSigningAvailable) create("ownerRelease") {
+            storeFile = file(requireNotNull(releaseKeyFile))
+            storePassword = releaseStorePassword
+            keyAlias = releaseKeyAlias
+            keyPassword = releaseKeyPassword
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.findByName("ownerRelease")
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

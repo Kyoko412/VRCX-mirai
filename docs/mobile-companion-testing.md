@@ -24,6 +24,9 @@ must be on the same Wi-Fi, without client isolation.
 | Frontend companion settings, logout, game ownership                           | 8 passed                          |
 | CEF x64 Release build                                                         | Passed after settings integration |
 | Full format check                                                             | Passed after formatter alignment  |
+| Android JVM tests                                                             | 25 passed                         |
+| Android debug APK and instrumentation APK compilation                         | Passed                            |
+| Android instrumentation execution                                             | Blocked: no online device         |
 
 The two-account fixture requests all five data routes over a live loopback HTTPS
 server, switches from `usr_a` to `usr_b`, and checks that the old token is
@@ -46,6 +49,9 @@ Windows address, Android version, and outcome when run:
 | Deny Android local-network permission and retry                           | Not run yet |
 | Confirm Windows Public profile has no inbound allow rule                  | Not run yet |
 
-The Android client and a physical phone run are required before calling the
-mobile feature ready for other users. No physical-device outcome is inferred
-from loopback tests.
+The Android client code and debug APK are built. The connected Android emulator
+remained `offline` in `adb devices`, and no physical phone was attached, so
+instrumentation and same-Wi-Fi acceptance have not run. The debug APK is for
+review and testing; it has not been signed with an owner release key or
+published as a GitHub Release. No physical-device outcome is inferred from
+unit tests, APK compilation or the desktop loopback fixture.
