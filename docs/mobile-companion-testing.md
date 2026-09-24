@@ -26,15 +26,22 @@ must be on the same Wi-Fi, without client isolation.
 | Full format check                                                             | Passed after formatter alignment                                          |
 | Android JVM tests                                                             | 27 passed                                                                 |
 | Android debug APK and instrumentation APK compilation                         | Passed                                                                    |
-| Android CI debug APK artifact                                                 | [Passed](https://github.com/Kyoko412/VRCX-mirai/actions/runs/35954832343) |
+| Android CI debug APK artifact                                                 | [Passed](https://github.com/Kyoko412/VRCX-mirai/actions/runs/35976995378) |
 | Release signing with a disposable test key                                    | Built and verified (v2); test key and APK deleted                         |
 | Android instrumentation execution                                             | Blocked: no online device                                                 |
+| Full frontend `npm test` suite                                                | Existing unrelated cases fail; see note below                             |
 
 The two-account fixture requests all five data routes over a live loopback HTTPS
 server, switches from `usr_a` to `usr_b`, and checks that the old token is
 rejected. It verifies account-specific friend, visit, encounter, and bio tables
 and the owner-marked game log. A legacy game row without an owner is hidden.
 Loopback is injected **only in the test**; the production selector rejects it.
+
+The full frontend suite does not pass on this checkout. For example, unchanged
+`src/shared/utils/__tests__/user.test.js` calls `userOnlineFor`, which the
+unchanged `src/shared/utils/user.js` does not export. The three frontend test
+files for this companion feature pass all 8 tests. The full-suite failure is
+recorded here rather than counted as a companion regression.
 
 ## Physical LAN acceptance
 
