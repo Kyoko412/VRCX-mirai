@@ -9,10 +9,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -78,32 +83,48 @@ fun PairingScreen(
         }
     }
 
-    Column(Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (onBack != null) Button(onClick = onBack) { Text("返回") }
-        Text(if (rescanMode) "更新电脑地址" else "连接电脑 VRCX",
-            style = MaterialTheme.typography.headlineSmall)
-        Text(if (rescanMode)
-            "电脑 IP 变化后重新扫描新二维码。只有与原电脑证书指纹相同才会更新地址，已有配对凭据会保留。"
-            else "电脑和手机需连接同一 Wi-Fi。先在电脑 VRCX 设置中启用手机访问并显示二维码。")
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+        .padding(horizontal = 20.dp, vertical = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp)) {
+        PageHeader(if (rescanMode) "更新电脑地址" else "连接电脑 VRCX", onBack = onBack)
+        RecordSurface {
+            Text(if (rescanMode) "重新连接同一台电脑" else "让手机和电脑保持在同一 Wi-Fi",
+                style = MaterialTheme.typography.titleMedium)
+            Text(if (rescanMode)
+                "电脑地址变化后，在 VRCX 中生成新的二维码并扫描。只有原电脑的证书指纹匹配，才会更新地址。"
+                else "在电脑 VRCX 的“设置 → 集成 → 手机查看”中开启访问，生成二维码后用手机扫描。",
+                style = MaterialTheme.typography.bodyMedium, color = CompanionColors.muted)
+        }
         Button(onClick = {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                 scanning = true
             } else cameraPermission.launch(Manifest.permission.CAMERA)
-        }) { Text(if (scanning) "重新扫码" else "扫描电脑二维码") }
+        }, modifier = Modifier.fillMaxWidth().height(54.dp),
+            shape = RoundedCornerShape(15.dp)) {
+            Text(if (scanning) "重新扫码" else "扫描电脑二维码")
+        }
         if (scanning) QrScanner(onCode = { scanning = false; accept(it) }, onError = {
             scanning = false
             error = "摄像头无法使用，请粘贴配对码。"
         })
-        if (cameraDenied) Text("摄像头权限未开启。可在系统设置中允许，或粘贴配对码。")
+        if (cameraDenied) Text("摄像头权限未开启。可在系统设置中允许，或粘贴配对码。",
+            color = CompanionColors.muted)
+        SmallLabel("无法扫码？粘贴电脑显示的配对码")
         OutlinedTextField(
             value = raw,
             onValueChange = { raw = it },
             label = { Text("粘贴配对码") },
             visualTransformation = PasswordVisualTransformation(),
             singleLine = false,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(15.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = CompanionColors.surface,
+                unfocusedContainerColor = CompanionColors.surface,
+                unfocusedBorderColor = CompanionColors.outline)
         )
-        Button(onClick = { accept(raw) }, enabled = raw.isNotBlank()) { Text("使用配对码") }
+        Button(onClick = { accept(raw) }, enabled = raw.isNotBlank(),
+            modifier = Modifier.fillMaxWidth()) { Text("使用配对码") }
         if (pendingOffer != null && lanRequested) {
             Button(onClick = { networkPermission.launch(LOCAL_NETWORK_PERMISSION) }) { Text("重试局域网权限") }
         }
