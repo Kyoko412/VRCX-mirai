@@ -6,7 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,7 +46,8 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(0xFF111216.toInt()))
         setContent {
             CompanionTheme {
-                Box(Modifier.fillMaxSize().background(CompanionColors.background).safeDrawingPadding()) {
+                Surface(Modifier.fillMaxSize(), color = CompanionColors.background) {
+                  Box(Modifier.fillMaxSize().safeDrawingPadding()) {
                 val store = remember { PairingStore.forAndroid(applicationContext) }
                 val pairingModel: PairingViewModel = viewModel(factory = object : ViewModelProvider.Factory {
                     @Suppress("UNCHECKED_CAST")
@@ -95,6 +96,7 @@ class MainActivity : ComponentActivity() {
                         PairingScreen(onOffer = { pairingModel.request(it, Build.MODEL) })
                     }
                 }
+                  }
                 }
             }
         }
