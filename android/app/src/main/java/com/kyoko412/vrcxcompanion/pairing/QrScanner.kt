@@ -18,12 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.google.zxing.BinaryBitmap
-import com.google.zxing.LuminanceSource
-import com.google.zxing.MultiFormatReader
-import com.google.zxing.PlanarYUVLuminanceSource
-import com.google.zxing.ReaderException
-import com.google.zxing.common.HybridBinarizer
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -54,6 +48,10 @@ fun QrScanner(onCode: (String) -> Unit, onError: () -> Unit, modifier: Modifier 
                             val code = decodeQr(image)
                             if (code != null && found.compareAndSet(false, true)) {
                                 ContextCompat.getMainExecutor(context).execute { latestCode.value(code) }
+                            }
+                        } catch (_: Exception) {
+                            if (found.compareAndSet(false, true)) {
+                                ContextCompat.getMainExecutor(context).execute { latestError.value() }
                             }
                         } finally {
                             image.close()
@@ -86,15 +84,5 @@ private fun decodeQr(image: ImageProxy): String? {
             luma[y * width + x] = buffer.get(y * plane.rowStride + x * plane.pixelStride)
         }
     }
-    var source: LuminanceSource = PlanarYUVLuminanceSource(luma, width, height, 0, 0, width, height, false)
-    val reader = MultiFormatReader()
-    repeat(4) {
-        try {
-            return reader.decode(BinaryBitmap(HybridBinarizer(source))).text
-        } catch (_: ReaderException) {
-            source = source.rotateCounterClockwise()
-            reader.reset()
-        }
-    }
-    return null
+    return decodeQrLuma(luma, width, height)
 }
