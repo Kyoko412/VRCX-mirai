@@ -17,3 +17,12 @@ AGENTS.md
 AI_GUIDE.md
 CLAUDE.md
 coverage/
+android/.gradle/
+android/.kotlin/
+android/local.properties
+android/*.apk
+android/*.aab
+android/**/*.apk
+android/**/*.aab
+*.jks
+*.keystore
