@@ -18,15 +18,17 @@ must be on the same Wi-Fi, without client isolation.
 
 ## Automated results (2026-09-24)
 
-| Check                                                                         | Result                            |
-| ----------------------------------------------------------------------------- | --------------------------------- |
-| .NET library and HTTPS route tests, including real two-account SQLite fixture | 40 passed                         |
-| Frontend companion settings, logout, game ownership                           | 8 passed                          |
-| CEF x64 Release build                                                         | Passed after settings integration |
-| Full format check                                                             | Passed after formatter alignment  |
-| Android JVM tests                                                             | 25 passed                         |
-| Android debug APK and instrumentation APK compilation                         | Passed                            |
-| Android instrumentation execution                                             | Blocked: no online device         |
+| Check                                                                         | Result                                                                    |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| .NET library and HTTPS route tests, including real two-account SQLite fixture | 40 passed                                                                 |
+| Frontend companion settings, logout, game ownership                           | 8 passed                                                                  |
+| CEF x64 Release build                                                         | Passed after settings integration                                         |
+| Full format check                                                             | Passed after formatter alignment                                          |
+| Android JVM tests                                                             | 25 passed                                                                 |
+| Android debug APK and instrumentation APK compilation                         | Passed                                                                    |
+| Android CI debug APK artifact                                                 | [Passed](https://github.com/Kyoko412/VRCX-mirai/actions/runs/35954832343) |
+| Release signing with a disposable test key                                    | Built and verified (v2); test key and APK deleted                         |
+| Android instrumentation execution                                             | Blocked: no online device                                                 |
 
 The two-account fixture requests all five data routes over a live loopback HTTPS
 server, switches from `usr_a` to `usr_b`, and checks that the old token is
