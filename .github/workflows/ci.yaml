@@ -1,5 +1,8 @@
 name: CI
 on:
+  push:
+    branches:
+      - codex/android-companion
   # pull_request:
   #   branches:
   #     - master
@@ -63,6 +66,10 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
       - name: Set version
         run: |
           echo "1900.0.0" > Version
@@ -73,5 +80,11 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/Dotnet/VRCX-Cef.csproj') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
+      - name: Test companion library
+        run: dotnet test tests/MobileCompanion.Tests/VRCX.MobileCompanion.Tests.csproj -c Release
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Test account ownership and companion settings
+        run: npm test -- src/services/database/__tests__/mobileGameOwnership.test.js src/coordinators/__tests__/mobileCompanionLogout.test.js src/views/Settings/components/__tests__/MobileCompanionSettings.test.js
       - name: Build Cef .NET Application
         run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -t:"Clean;Build" -maxcpucount --runtime win-x64 --self-contained
