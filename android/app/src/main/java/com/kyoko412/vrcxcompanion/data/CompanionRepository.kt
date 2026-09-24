@@ -15,7 +15,7 @@ import com.kyoko412.vrcxcompanion.network.VisitDto
 import com.kyoko412.vrcxcompanion.pairing.PairingStore
 import com.kyoko412.vrcxcompanion.pairing.SavedPairing
 
-class CompanionRepository(private val store: PairingStore, private var api: CompanionApi) {
+class CompanionRepository(private val store: PairingStore, private var api: CompanionApi) : FriendsSource, HistorySource {
     private var pairing: SavedPairing? = store.load()
     var accountId: String? = null
         private set
@@ -57,7 +57,7 @@ class CompanionRepository(private val store: PairingStore, private var api: Comp
         }
     }
 
-    suspend fun friends(search: String?, cursor: String?): Page<FriendDto> = read {
+    override suspend fun friends(search: String?, cursor: String?): Page<FriendDto> = read {
         val expected = expectedAccount()
         val page = api.friends(token(), search, cursor)
         checkAccount(page.accountId, expected)
@@ -66,7 +66,7 @@ class CompanionRepository(private val store: PairingStore, private var api: Comp
         page
     }
 
-    suspend fun worldVisits(friendId: String, cursor: String?): Page<VisitDto> = read {
+    override suspend fun worldVisits(friendId: String, cursor: String?): Page<VisitDto> = read {
         val expected = expectedAccount()
         val page = api.worldVisits(token(), friendId, cursor)
         checkAccount(page.accountId, expected)
@@ -75,7 +75,7 @@ class CompanionRepository(private val store: PairingStore, private var api: Comp
         page
     }
 
-    suspend fun encounters(friendId: String, cursor: String?): EncounterPage = read {
+    override suspend fun encounters(friendId: String, cursor: String?): EncounterPage = read {
         val expected = expectedAccount()
         val page = api.encounters(token(), friendId, cursor)
         checkAccount(page.accountId, expected)
@@ -84,7 +84,7 @@ class CompanionRepository(private val store: PairingStore, private var api: Comp
         page
     }
 
-    suspend fun bioHistory(friendId: String, cursor: String?): Page<BioChangeDto> = read {
+    override suspend fun bioHistory(friendId: String, cursor: String?): Page<BioChangeDto> = read {
         val expected = expectedAccount()
         val page = api.bioHistory(token(), friendId, cursor)
         checkAccount(page.accountId, expected)

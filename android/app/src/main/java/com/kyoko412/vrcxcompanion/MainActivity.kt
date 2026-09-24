@@ -21,10 +21,17 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kyoko412.vrcxcompanion.data.CompanionRepository
 import com.kyoko412.vrcxcompanion.network.HttpPairingTransport
+import com.kyoko412.vrcxcompanion.network.StatusDto
 import com.kyoko412.vrcxcompanion.pairing.PairingStore
 import com.kyoko412.vrcxcompanion.pairing.PairingUiState
 import com.kyoko412.vrcxcompanion.pairing.PairingViewModel
+import com.kyoko412.vrcxcompanion.ui.FriendDetailScreen
+import com.kyoko412.vrcxcompanion.ui.FriendsScreen
+import com.kyoko412.vrcxcompanion.ui.FriendsViewModel
+import com.kyoko412.vrcxcompanion.ui.HistoryViewModel
+import com.kyoko412.vrcxcompanion.ui.HomeScreen
 import com.kyoko412.vrcxcompanion.ui.PairingScreen
 
 class MainActivity : ComponentActivity() {
@@ -41,10 +48,52 @@ class MainActivity : ComponentActivity() {
                 val state by model.state.collectAsState()
                 var paired by remember { mutableStateOf(store.load() != null) }
                 LaunchedEffect(state) { if (state is PairingUiState.Approved) paired = true }
+                val repository = remember(paired) { if (paired) CompanionRepository.forAndroid(applicationContext) else null }
+                var status by remember(repository) { mutableStateOf<StatusDto?>(null) }
+                var page by remember(repository) { mutableStateOf("home") }
+                var friendName by remember(repository) { mutableStateOf("") }
+                var lastRead by remember(repository) { mutableStateOf<String?>(null) }
+                var connection by remember(repository) { mutableStateOf("等待连接") }
+                LaunchedEffect(repository) {
+                    if (repository != null) {
+                        try {
+                            status = repository.status()
+                            lastRead = java.time.Instant.now().toString()
+                            connection = "已连接"
+                        } catch (_: Exception) { connection = "连接失败，请刷新" }
+                    }
+                }
                 when {
-                    paired -> Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("已配对电脑 VRCX", style = MaterialTheme.typography.headlineSmall)
-                        Button(onClick = { model.unpair(); paired = false }) { Text("解除配对") }
+                    paired && repository != null -> {
+                        val friendsModel: FriendsViewModel = viewModel(key = "friends-${repository.hashCode()}", factory = object : ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T = FriendsViewModel(repository) as T
+                        })
+                        val historyModel: HistoryViewModel = viewModel(key = "history-${repository.hashCode()}", factory = object : ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T = HistoryViewModel(repository) as T
+                        })
+                        val friends by friendsModel.state.collectAsState()
+                        val history by historyModel.state.collectAsState()
+                        when (page) {
+                            "friends" -> FriendsScreen(friends, friendsModel::search,
+                                onOpen = { id, name -> friendName = name; historyModel.open(id); page = "detail" },
+                                onLoadMore = friendsModel::loadMore, onRefresh = friendsModel::refresh,
+                                onBack = { page = "home" })
+                            "detail" -> FriendDetailScreen(friendName, history,
+                                onBack = { page = "friends" }, onTab = historyModel::selectTab,
+                                onLoadMore = historyModel::loadMore, onRefresh = historyModel::refresh)
+                            else -> HomeScreen(status?.computerName ?: "未知", status?.accountId ?: "未知",
+                                lastRead, connection,
+                                onFriends = { friendsModel.refresh(); page = "friends" },
+                                onGameLog = { page = "game" },
+                                onRefresh = {
+                                    // A new read is performed when a screen is opened; connection refresh is added with game log state.
+                                    friendsModel.refresh()
+                                    page = "friends"
+                                },
+                                onUnpair = { repository.unpair(); model.unpair(); paired = false })
+                        }
                     }
                     state == PairingUiState.Requesting || state == PairingUiState.Waiting ->
                         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
