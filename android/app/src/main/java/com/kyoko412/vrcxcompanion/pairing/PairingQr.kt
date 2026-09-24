@@ -16,6 +16,8 @@ data class PairingQr(
     val spkiSha256: String,
     val secret: String
 ) {
+    override fun toString(): String = "PairingQr(address=$address, port=$port, secret=<redacted>)"
+
     companion object {
         private val strictJson = Json { ignoreUnknownKeys = false }
         private val secretPattern = Regex("[A-Za-z0-9_-]{43}")
