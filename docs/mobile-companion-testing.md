@@ -1,12 +1,13 @@
 # Mobile companion test record
 
-The desktop companion requires **.NET 10 SDK** to build and the ASP.NET Core 10
-runtime to launch. After `npm ci`, build the Windows CEF app with:
+The desktop companion requires **.NET 10 SDK** to build. Use a self-contained
+Windows build so the development executable includes the ASP.NET Core 10 runtime.
+After `npm ci`, build the Windows CEF app with:
 
 ```powershell
 dotnet test tests/MobileCompanion.Tests/VRCX.MobileCompanion.Tests.csproj -c Release
 npm test -- src/services/database/__tests__/mobileGameOwnership.test.js src/coordinators/__tests__/mobileCompanionLogout.test.js src/views/Settings/components/__tests__/MobileCompanionSettings.test.js
-dotnet build Dotnet/VRCX-Cef.csproj -c Release -p:Platform=x64 --runtime win-x64
+dotnet build Dotnet/VRCX-Cef.csproj -c Release -p:Platform=x64 --runtime win-x64 --self-contained
 npm run prod
 ```
 
@@ -23,7 +24,7 @@ must be on the same Wi-Fi, without client isolation.
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | .NET library and HTTPS route tests, including real two-account SQLite fixture | 41 passed                                                                 |
 | Frontend companion settings, logout, game ownership                           | 8 passed                                                                  |
-| CEF x64 Release build                                                         | Passed after settings integration                                         |
+| CEF x64 self-contained Release build and direct executable launch             | Passed                                                                    |
 | Full format check                                                             | Passed after formatter alignment                                          |
 | Android JVM tests                                                             | 27 passed                                                                 |
 | Android debug APK and instrumentation APK compilation                         | Passed                                                                    |
@@ -48,14 +49,14 @@ recorded here rather than counted as a companion regression.
 
 The Samsung SM-S9280 and Windows PC are on the same Private Wi-Fi subnet
 (`172.24.80.0/20`). The debug APK was installed and opened on the phone. The
-desktop build was launched with a local .NET 10 SDK, and TCP 34682 is reachable
+desktop build was launched, and TCP 34682 is reachable
 from the phone. During this test, two runtime defects were found and fixed:
 network interfaces without IPv4 made address enumeration throw, and CefSharp
 converted a JavaScript friend ID array to `List<object>` rather than `string[]`.
 The desktop app then logged in successfully without the friend-sync error.
-After the port check, phone access was disabled and the normal development
-desktop build was restored; it launched and loaded the frontend without the
-address-enumeration crash.
+After the port check, phone access was disabled and the self-contained desktop
+build was restored; it launched directly and loaded the frontend without the
+address-enumeration crash or a separate ASP.NET Core runtime installation.
 
 | Check                                                                     | Status                                   |
 | ------------------------------------------------------------------------- | ---------------------------------------- |
