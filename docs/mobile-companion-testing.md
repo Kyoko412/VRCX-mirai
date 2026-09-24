@@ -61,17 +61,19 @@ After the port check, phone access was disabled and the self-contained desktop
 build was restored; it launched directly and loaded the frontend without the
 address-enumeration crash or a separate ASP.NET Core runtime installation.
 
-| Check                                                                     | Status                                                          |
-| ------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Phone to PC TCP 34682 on the Private Wi-Fi                                | Passed                                                          |
-| Open the scanner on Samsung SM-S9280                                      | Crash reproduced, fix installed; no new crash in ADB smoke test |
-| Scan QR, request pairing, approve on PC, read friends and three histories | Not run yet                                                     |
-| Read account-owned game log                                               | Not run yet                                                     |
-| Log out or switch account during a read                                   | Not run yet                                                     |
-| Revoke phone token and disable service                                    | Not run yet                                                     |
-| Change PC LAN IP; reject a different TLS key at the same IP               | Not run yet                                                     |
-| Deny Android local-network permission and retry                           | Not applicable on Android 16; test on 17                        |
-| Confirm Windows Public profile has no inbound allow rule                  | Failed: Windows added broad app rules                           |
+| Check                                                            | Status                                                      |
+| ---------------------------------------------------------------- | ----------------------------------------------------------- |
+| Phone to PC TCP 34682 on the Private Wi-Fi                       | Passed                                                      |
+| Open the scanner on Samsung SM-S9280                             | Passed after QR decoder fix; no new AndroidRuntime crash    |
+| Scan QR, request pairing, and approve on PC                      | Passed; phone reported connected and a successful data read |
+| Read a friend's bio history on the phone                         | Passed; prior and updated bio text appeared                 |
+| Read friend map visits and mutual-friend encounters on the phone | Not run yet                                                 |
+| Read account-owned game log                                      | Not run yet                                                 |
+| Log out or switch account during a read                          | Not run yet                                                 |
+| Revoke phone token and disable service                           | Not run yet                                                 |
+| Change PC LAN IP; reject a different TLS key at the same IP      | Not run yet                                                 |
+| Deny Android local-network permission and retry                  | Not applicable on Android 16; test on 17                    |
+| Confirm Windows Public profile has no inbound allow rule         | Failed: Windows added broad app rules                       |
 
 The Windows firewall automatically created inbound rules for this worktree's
 `VRCX.exe` covering both Private and Public profiles, even though the service
