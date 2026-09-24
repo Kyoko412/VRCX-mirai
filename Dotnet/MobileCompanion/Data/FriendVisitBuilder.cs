@@ -18,7 +18,10 @@ public static class FriendVisitBuilder
                 DateTimeStyles.AssumeUniversal, out var time);
             return valid ? new TimedEvent(item, time.ToUniversalTime(), item.Type switch
             {
-                "Online" => 0, "GPS" => 1, "Offline" => 2, _ => 3
+                "Online" => 0,
+                "GPS" => 1,
+                "Offline" => 2,
+                _ => 3
             }) : null;
         }).Where(item => item is not null && item.EventOrder < 3)
             .OrderBy(item => item!.Time).ThenBy(item => item!.EventOrder)
@@ -82,10 +85,10 @@ public static class FriendVisitBuilder
         var counts = visits.GroupBy(item => item.WorldId!, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
         return visits.Select(item => item with
-            {
-                WorldName = latestNames.GetValueOrDefault(item.WorldId!) ?? item.WorldId,
-                VisitCount = counts[item.WorldId!]
-            }).OrderByDescending(item => item.ObservedAt, StringComparer.Ordinal)
+        {
+            WorldName = latestNames.GetValueOrDefault(item.WorldId!) ?? item.WorldId,
+            VisitCount = counts[item.WorldId!]
+        }).OrderByDescending(item => item.ObservedAt, StringComparer.Ordinal)
             .ThenByDescending(item => item.EventKey, StringComparer.Ordinal).ToArray();
     }
 
